@@ -1,6 +1,16 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
-const MONGODB_URI = "mongodb+srv://sriramjewellerydpm_db_user:Admin%401234@cluster0.q12uggh.mongodb.net/jewellery_db?appName=Cluster0";
+// Read the connection string from the environment — never inline it. This file
+// is committed, and a credential in a committed file is a published credential:
+// the previous hardcoded URI here was scraped and flagged by GitHub secret
+// scanning as a public leak across five repositories.
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error("MONGODB_URI is not set. Add it to .env before running this script.");
+  process.exit(1);
+}
 
 async function run() {
   await mongoose.connect(MONGODB_URI);
