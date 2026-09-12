@@ -37,11 +37,23 @@ const OrderSchema = new mongoose.Schema({
   // orders, which are deliberately not backfilled.
   deliveredAt: { type: Date, default: null },
 
+  // True while this order is holding stock it took at creation. Cleared when
+  // the stock is returned (cancellation, owner rejection), so that the two
+  // release paths — which key off different fields — cannot restock twice.
+  // Legacy orders default to false: they predate stock tracking, so they hold
+  // nothing and must not put anything back.
+  stockReserved: { type: Boolean, default: false },
+
   // Razorpay (PRD §4.1)
   razorpayOrderId: { type: String },
   razorpayPaymentId: { type: String },
   paymentStatus: { type: String },
   paymentMethod: { type: String },
+
+  // Stamped once, when a payment is first confirmed — by whichever of the
+  // webhook or the browser's verify call arrives first. This is what makes that
+  // transition idempotent, so the owner is alerted exactly once per order.
+  paidAt: { type: Date, default: null },
 
   shippingAddress: { type: Object },
   createdAt: { type: Date, default: Date.now },

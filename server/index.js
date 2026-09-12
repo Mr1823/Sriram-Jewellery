@@ -48,7 +48,17 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
+// Keep the raw bytes alongside the parsed body. Razorpay signs the exact
+// payload it sent, so the payment webhook must compute its HMAC over those
+// bytes — re-serialising the parsed object would respace or reorder it and the
+// digest would never match. Only the webhook route reads req.rawBody.
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Ensure MongoDB is connected before any route handler runs. On a serverless
 // cold start the module-level connectDB() is still in flight, so without this
