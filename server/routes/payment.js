@@ -6,6 +6,7 @@ import { computePrice } from "../utils/computePrice.js";
 import { verifyJWT } from "../middleware/auth.js";
 import { sendOrderAlert } from "../utils/whatsapp.js";
 import { getRates, getRateStatus, findStaleMetalsForProducts } from "../utils/getRates.js";
+import { reserveStock, releaseStock, outOfStockMessage } from "../utils/stock.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -119,32 +120,50 @@ router.post("/create-order", verifyJWT, async (req, res) => {
     totalAmount = Math.round(totalAmount);
     gstAmount = Math.round(gstAmount);
 
-    // Create Razorpay order (amount in paise)
-    const razorpayOrder = await razorpay.orders.create({
-      amount: totalAmount * 100, // Convert to paise
-      currency: "INR",
-      receipt: `ORD-${Date.now()}`,
-      notes: {
+    // Take stock before sending the customer to Razorpay, so two people cannot
+    // both reach the payment screen holding the last piece. See utils/stock.js
+    // for why reservation happens here rather than on payment confirmation.
+    const reservation = await reserveStock(verifiedItems);
+    if (!reservation.ok) {
+      return res.status(409).json({ error: outOfStockMessage(reservation) });
+    }
+
+    let razorpayOrder;
+    let order;
+    try {
+      // Create Razorpay order (amount in paise)
+      razorpayOrder = await razorpay.orders.create({
+        amount: totalAmount * 100, // Convert to paise
+        currency: "INR",
+        receipt: `ORD-${Date.now()}`,
+        notes: {
+          userId: req.user.userId,
+          email: req.user.email,
+        },
+      });
+
+      // Create order in our DB with pending status
+      order = await Order.create({
+        orderId: razorpayOrder.receipt,
         userId: req.user.userId,
         email: req.user.email,
-      },
-    });
-
-    // Create order in our DB with pending status
-    const order = await Order.create({
-      orderId: razorpayOrder.receipt,
-      userId: req.user.userId,
-      email: req.user.email,
-      name: name || undefined,
-      items: verifiedItems,
-      totalAmount,
-      gstAmount,
-      shippingAddress,
-      razorpayOrderId: razorpayOrder.id,
-      paymentMethod: "razorpay",
-      orderStatus: "pending",
-      paymentStatus: "pending",
-    });
+        name: name || undefined,
+        items: verifiedItems,
+        totalAmount,
+        gstAmount,
+        shippingAddress,
+        razorpayOrderId: razorpayOrder.id,
+        paymentMethod: "razorpay",
+        orderStatus: "pending",
+        paymentStatus: "pending",
+        stockReserved: true,
+      });
+    } catch (createError) {
+      // Razorpay refused, or the order write failed. Either way no order is
+      // holding this stock, so it must go back rather than vanish.
+      await releaseStock(verifiedItems);
+      throw createError;
+    }
 
     res.json({
       success: true,
@@ -160,6 +179,48 @@ router.post("/create-order", verifyJWT, async (req, res) => {
   }
 });
 
+/**
+ * Move an order from pending to paid, exactly once.
+ *
+ * Both the browser's /verify call and Razorpay's webhook can arrive for the
+ * same payment, in either order, and both are legitimate. The transition is
+ * made idempotent by conditioning the update on `paidAt: null` — the first
+ * caller to win that update gets the document back and is the one that alerts
+ * the owner; a later caller gets null and alerts nobody.
+ *
+ * Stock is deliberately NOT touched here. It was taken when the order was
+ * created, so there is nothing to decrement at confirmation and therefore no
+ * way for a double confirmation to double-decrement.
+ *
+ * @returns {{order: Object|null, alreadyConfirmed: boolean}}
+ */
+const confirmPayment = async ({ razorpayOrderId, razorpayPaymentId, source }) => {
+  const order = await Order.findOneAndUpdate(
+    { razorpayOrderId, paidAt: null },
+    {
+      razorpayPaymentId,
+      paymentStatus: "paid",
+      orderStatus: "processing",
+      paymentMethod: "razorpay",
+      paidAt: new Date(),
+    },
+    { new: true }
+  );
+
+  if (order) {
+    console.log(`💰 Payment confirmed for ${order.orderId} via ${source}.`);
+    // Only a confirmed payment is worth waking the owner for, and only once.
+    sendOrderAlert({ order, paymentMethod: "razorpay" }).catch((err) =>
+      console.error("Owner order alert failed (non-critical):", err.message)
+    );
+    return { order, alreadyConfirmed: false };
+  }
+
+  // Either already confirmed by the other path, or no such order.
+  const existing = await Order.findOne({ razorpayOrderId });
+  return { order: existing, alreadyConfirmed: Boolean(existing) };
+};
+
 // POST /api/payment/verify — verify Razorpay payment signature
 router.post("/verify", verifyJWT, async (req, res) => {
   try {
@@ -167,6 +228,10 @@ router.post("/verify", verifyJWT, async (req, res) => {
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ error: "Missing payment verification fields" });
+    }
+
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ error: "Payment system not configured" });
     }
 
     // Verify signature
@@ -179,36 +244,101 @@ router.post("/verify", verifyJWT, async (req, res) => {
       return res.status(400).json({ error: "Payment verification failed — invalid signature" });
     }
 
-    // Update order with payment details
-    const order = await Order.findOneAndUpdate(
-      { razorpayOrderId: razorpay_order_id },
-      {
-        razorpayPaymentId: razorpay_payment_id,
-        paymentStatus: "paid",
-        orderStatus: "processing",
-        paymentMethod: "razorpay",
-      },
-      { new: true }
-    );
+    const { order, alreadyConfirmed } = await confirmPayment({
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      source: "browser verify",
+    });
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Announced here rather than at order creation: only a confirmed payment
-    // is worth waking the owner for.
-    sendOrderAlert({ order, paymentMethod: "razorpay" }).catch((err) =>
-      console.error("Owner order alert failed (non-critical):", err.message)
-    );
+    // Scoped to the caller: the signature is the real gate, but an order should
+    // only ever be readable by the customer it belongs to.
+    if (order.userId !== req.user.userId) {
+      return res.status(403).json({ error: "Not authorized to confirm this order" });
+    }
 
     res.json({
       success: true,
-      message: "Payment verified successfully",
+      message: alreadyConfirmed
+        ? "Payment already confirmed"
+        : "Payment verified successfully",
       data: order,
     });
   } catch (error) {
     console.error("Payment verify error:", error);
     res.status(500).json({ error: "Payment verification failed" });
+  }
+});
+
+// ─── POST /api/payment/webhook ───────────────────────────────────────────────
+//
+// Razorpay's server-to-server confirmation, and the reason an order no longer
+// depends on the customer's browser surviving the redirect. Without it, a tab
+// closed after payment left the money captured and the order pending forever,
+// with no owner alert.
+//
+// Deliberately unauthenticated: the caller is Razorpay, not a signed-in user.
+// The HMAC over the raw body is what authenticates it, which is why this route
+// needs `req.rawBody` (captured by the express.json verify hook in index.js) —
+// re-serialising the parsed body would change the bytes and break the digest.
+router.post("/webhook", async (req, res) => {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("Razorpay webhook received but RAZORPAY_WEBHOOK_SECRET is not set.");
+    return res.status(503).json({ error: "Webhook not configured" });
+  }
+
+  const signature = req.headers["x-razorpay-signature"];
+  const rawBody = req.rawBody;
+
+  if (!signature || !rawBody) {
+    return res.status(400).json({ error: "Missing webhook signature or body" });
+  }
+
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+
+  // Constant-time compare — a plain !== leaks how much of the digest matched.
+  const provided = Buffer.from(String(signature), "utf8");
+  const computed = Buffer.from(expected, "utf8");
+  if (provided.length !== computed.length || !crypto.timingSafeEqual(provided, computed)) {
+    console.warn("Razorpay webhook rejected: signature mismatch.");
+    return res.status(400).json({ error: "Invalid webhook signature" });
+  }
+
+  try {
+    const event = req.body?.event;
+    const payment = req.body?.payload?.payment?.entity;
+
+    // Acknowledge anything we don't act on with a 200 — a non-2xx tells Razorpay
+    // to retry, and retrying an event we will never handle achieves nothing.
+    if (event !== "payment.captured" || !payment?.order_id) {
+      return res.json({ success: true, ignored: true, event: event || null });
+    }
+
+    const { order, alreadyConfirmed } = await confirmPayment({
+      razorpayOrderId: payment.order_id,
+      razorpayPaymentId: payment.id,
+      source: "webhook",
+    });
+
+    if (!order) {
+      // A captured payment with no matching order is worth surfacing, but still
+      // acknowledged: retries will not make the order appear.
+      console.error(
+        `Razorpay webhook: payment.captured for unknown order ${payment.order_id} (payment ${payment.id}).`
+      );
+      return res.json({ success: true, matched: false });
+    }
+
+    res.json({ success: true, matched: true, alreadyConfirmed });
+  } catch (error) {
+    // A 500 here asks Razorpay to retry, which is what we want for a transient
+    // database failure.
+    console.error("Razorpay webhook error:", error);
+    res.status(500).json({ error: "Webhook processing failed" });
   }
 });
 

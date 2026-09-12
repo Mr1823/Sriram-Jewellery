@@ -446,7 +446,27 @@ router.post("/refresh", async (req, res) => {
     // Find the stored refresh token
     const storedToken = await RefreshToken.findOne({ tokenHash });
     if (!storedToken) {
+      // Unknown hash. Deliberately NOT treated as reuse: an unrecognised token
+      // names no user, so there is no family to revoke — and if a bare 401 here
+      // triggered a revocation, anyone could sign every customer out by posting
+      // random strings. Genuine replay is caught by the spent-token branch
+      // below, which does know whose session to end.
       return res.status(401).json({ error: "Invalid refresh token" });
+    }
+
+    // Reuse detection. This token was already exchanged, so the legitimate
+    // client is holding its replacement — whoever is presenting this one copied
+    // it. We cannot tell attacker from victim, so end every session for the
+    // account and make them sign in again.
+    if (storedToken.usedAt) {
+      await RefreshToken.deleteMany({ userId: storedToken.userId });
+      console.warn(
+        `🔐 Refresh token reuse detected for user ${storedToken.userId} ` +
+          `(token first spent at ${storedToken.usedAt.toISOString()}). Revoked all sessions.`
+      );
+      return res.status(401).json({
+        error: "This session has been ended for your security. Please sign in again.",
+      });
     }
 
     // Check expiry
@@ -460,6 +480,18 @@ router.post("/refresh", async (req, res) => {
     if (!user) {
       await RefreshToken.deleteOne({ _id: storedToken._id });
       return res.status(401).json({ error: "User not found" });
+    }
+
+    // Spend this token before minting its replacement. Conditional on usedAt
+    // still being null so that two concurrent refreshes with the same token
+    // cannot both succeed — the loser is treated as reuse on its next attempt.
+    const spent = await RefreshToken.findOneAndUpdate(
+      { _id: storedToken._id, usedAt: null },
+      { usedAt: new Date() },
+      { new: true }
+    );
+    if (!spent) {
+      return res.status(401).json({ error: "Invalid refresh token" });
     }
 
     // Issue new access token (rotate refresh token for extra security)

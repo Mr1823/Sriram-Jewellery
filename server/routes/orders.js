@@ -6,6 +6,7 @@ import { computePrice } from "../utils/computePrice.js";
 import { getRates, getRateStatus, findStaleMetalsForProducts } from "../utils/getRates.js";
 import { verifyJWT, requireAdmin } from "../middleware/auth.js";
 import { sendOrderAlert, sendOrderApprovalAlert } from "../utils/whatsapp.js";
+import { reserveStock, releaseStock, outOfStockMessage } from "../utils/stock.js";
 import {
   validate,
   createOrderSchema,
@@ -145,6 +146,13 @@ router.post("/", verifyJWT, validate(createOrderSchema), async (req, res) => {
       });
     }
 
+    // Take stock before the order exists. A refusal here leaves nothing behind —
+    // reserveStock rolls back its own partial work.
+    const reservation = await reserveStock(verifiedItems);
+    if (!reservation.ok) {
+      return res.status(409).json({ error: outOfStockMessage(reservation) });
+    }
+
     const newOrder = new Order({
       orderId: `ORD-${Date.now()}`,
       userId: req.user.userId,
@@ -157,9 +165,17 @@ router.post("/", verifyJWT, validate(createOrderSchema), async (req, res) => {
       paymentMethod: paymentMethod || "cod",
       paymentStatus: paymentMethod === "cod" ? "unpaid" : "pending",
       orderStatus: "processing",
+      stockReserved: true,
     });
 
-    await newOrder.save();
+    try {
+      await newOrder.save();
+    } catch (saveError) {
+      // Stock is already out of the catalogue but no order holds it. Put it
+      // back rather than quietly losing inventory to a failed write.
+      await releaseStock(verifiedItems);
+      throw saveError;
+    }
 
     // Owner alert, fire-and-forget. Card orders are announced from the payment
     // verification handler instead, so an abandoned checkout raises nothing.
@@ -250,6 +266,12 @@ router.patch("/:id/approval", verifyJWT, requireAdmin, validate(orderApprovalSch
       order.rejectionReason = rejectionReason || null;
       order.approvedAt = null;
       order.expectedDeliveryDate = null;
+
+      // A rejected order is never fulfilled, so its pieces go back on sale.
+      if (order.stockReserved) {
+        await releaseStock(order.items);
+        order.stockReserved = false;
+      }
     }
 
     await order.save();
@@ -285,10 +307,20 @@ router.patch("/:id/cancel", verifyJWT, async (req, res) => {
     }
 
     order.orderStatus = "cancelled";
+
+    // Put the pieces back on sale. Guarded by the flag rather than by status
+    // alone: cancellation and owner rejection are separate fields, so without
+    // it an order that was rejected and then cancelled would restock twice.
+    if (order.stockReserved) {
+      await releaseStock(order.items);
+      order.stockReserved = false;
+    }
+
     await order.save();
 
     res.json({ success: true, data: order });
   } catch (error) {
+    console.error("Cancel order error:", error);
     res.status(500).json({ error: "Failed to cancel order" });
   }
 });

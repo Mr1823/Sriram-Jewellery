@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import useProducts from "../../hooks/useProducts";
 import useCart from "../../hooks/useCart";
 import useAuthContext from "../../hooks/useAuthContext";
 import useWishlist from "../../hooks/useWishlist";
@@ -16,10 +16,8 @@ const DynamicProduct = () => {
   const { id } = useParams();
   useTrackProductView(id);
   const { user } = useAuthContext();
-  const [dynamicProduct, setDynamicProduct] = useState(null);
   const [presentInCart, setPresentInCart] = useState(false);
   const [presentInWishlist, setPresentInWishlist] = useState(false);
-  const [products] = useProducts();
   const { cartData, addToCart } = useCart();
   const [wishlistData, , refetchWishlist, addToWishlist] = useWishlist();
   const navigate = useNavigate();
@@ -33,13 +31,32 @@ const DynamicProduct = () => {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
 
+  // Fetch this one product by id rather than pulling the whole catalogue and
+  // filtering client-side. The old approach matched only on `_id`, so a URL
+  // carrying the equally valid `productId` (which the API itself accepts) found
+  // nothing and left the page on a spinner forever.
+  const {
+    data: dynamicProduct,
+    isLoading: isProductLoading,
+    error: productError,
+  } = useQuery({
+    queryKey: ["product", id],
+    enabled: Boolean(id),
+    retry: (failureCount, err) =>
+      // A 404 is a real answer, not a blip — retrying it only delays the
+      // not-found state the customer needs to see.
+      err?.response?.status === 404 ? false : failureCount < 2,
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/products/${id}`);
+      return res.data?.data ?? res.data;
+    },
+  });
+
+  // Navigating to a different product must not keep the previous selection.
   useEffect(() => {
-    const filteredProduct = products?.find((data) => data._id === id);
-    setDynamicProduct(filteredProduct);
-    // Navigating to a different product must not keep the previous selection.
     setActiveImageIndex(0);
     setQuantity(1);
-  }, [products, id]);
+  }, [id]);
 
   useEffect(() => {
     if (user) {
@@ -133,7 +150,7 @@ const DynamicProduct = () => {
     }
   };
 
-  if (!dynamicProduct) {
+  if (isProductLoading) {
     return (
       <div className="w-full flex justify-center items-center py-40 bg-surface">
         <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -141,8 +158,46 @@ const DynamicProduct = () => {
     );
   }
 
+  // Anything that is not a loaded product ends here rather than spinning
+  // indefinitely: a 404, a failed request, or a response with no product in it.
+  if (productError || !dynamicProduct) {
+    const isMissing = productError?.response?.status === 404 || !productError;
+    return (
+      <div className="w-full bg-surface py-40 px-margin-mobile md:px-margin-desktop">
+        <CustomHelmet title={isMissing ? "Piece not found" : "Something went wrong"} />
+        <div className="max-w-md mx-auto text-center">
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant/50">
+            {isMissing ? "search_off" : "error"}
+          </span>
+          <h1 className="font-display-lg text-headline-md text-primary mt-6 mb-3">
+            {isMissing ? "We couldn't find that piece" : "We couldn't load that piece"}
+          </h1>
+          <p className="text-on-surface-variant font-body-base mb-8">
+            {isMissing
+              ? "It may have been sold, renamed, or the link may be out of date."
+              : "Something went wrong at our end. Please try again in a moment."}
+          </p>
+          <Link
+            to="/shop"
+            className="inline-block bg-primary text-on-primary px-8 py-3 font-button-text text-button-text tracking-wider uppercase hover:opacity-90 transition-ui"
+          >
+            Browse the collection
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const finalPrice = dynamicProduct.discountPrice || dynamicProduct.price;
+
+  // Field names must match what computePrice actually returns — metalValue,
+  // wastageValue, gst, ratePerGram. Reading materialCost/makingCharges (which
+  // exist nowhere on the response) silently rendered ₹0 against the two largest
+  // lines, so the itemisation shown to the customer did not sum to the total
+  // they were asked to pay. PriceBreakdownPreview.jsx is the reference.
   const breakdown = dynamicProduct.priceBreakdown;
+  const wastagePercent = Number(dynamicProduct.wastagePercent) || 0;
+  const gstPercent = Number(dynamicProduct.gstPercent) || 0;
 
   // Gallery sources: every distinct image this product has, primary first.
   const galleryImages = [
@@ -248,16 +303,23 @@ const DynamicProduct = () => {
                     {breakdown ? (
                       <>
                         <div className="flex justify-between items-center">
-                          <span className="text-on-surface-variant font-body-base">Base Material</span>
-                          <span className="font-semibold">₹ {breakdown.materialCost?.toLocaleString("en-IN") || 0}</span>
+                          <span className="text-on-surface-variant font-body-base">
+                            Metal value
+                            {dynamicProduct.weight ? ` (${dynamicProduct.weight}g × ₹${breakdown.ratePerGram?.toLocaleString("en-IN")}/g)` : ""}
+                          </span>
+                          <span className="font-semibold">₹ {(breakdown.metalValue ?? 0).toLocaleString("en-IN")}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-on-surface-variant font-body-base">Making Charges</span>
-                          <span className="font-semibold">₹ {breakdown.makingCharges?.toLocaleString("en-IN") || 0}</span>
+                          <span className="text-on-surface-variant font-body-base">
+                            Wastage{wastagePercent ? ` (${wastagePercent}%)` : ""}
+                          </span>
+                          <span className="font-semibold">₹ {(breakdown.wastageValue ?? 0).toLocaleString("en-IN")}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-on-surface-variant font-body-base">GST (3%)</span>
-                          <span className="font-semibold">₹ {breakdown.gst?.toLocaleString("en-IN") || 0}</span>
+                          <span className="text-on-surface-variant font-body-base">
+                            GST{gstPercent ? ` (${gstPercent}%)` : ""}
+                          </span>
+                          <span className="font-semibold">₹ {(breakdown.gst ?? 0).toLocaleString("en-IN")}</span>
                         </div>
                       </>
                     ) : (
