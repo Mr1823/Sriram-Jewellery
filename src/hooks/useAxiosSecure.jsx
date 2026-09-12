@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useAuthContext from "./useAuthContext";
 import { getApiBaseUrl } from "../utils/apiConfig";
+// Same module the server imports, so the code string cannot drift between them.
+import { AUTH_CODES } from "../../shared/authCodes.js";
 
 const useAxiosSecure = () => {
   const navigate = useNavigate();
@@ -35,7 +37,7 @@ const useAxiosSecure = () => {
         if (
           error.response?.status === 401 &&
           !originalRequest._retry &&
-          error.response?.data?.code === "TOKEN_EXPIRED"
+          error.response?.data?.code === AUTH_CODES.TOKEN_EXPIRED
         ) {
           originalRequest._retry = true;
 
@@ -49,22 +51,24 @@ const useAxiosSecure = () => {
             // Refresh failed
           }
 
-          // Refresh failed — log out and redirect
+          // Refresh failed — the session is genuinely over. Say so on the sign-in
+          // page rather than bouncing the user there unexplained, which reads as
+          // the app losing their work at random.
           await logOut();
-          navigate("/login");
+          navigate("/login?reason=session-expired", { replace: true });
           return Promise.reject(error);
         }
 
-        // 403 Forbidden — redirect to home
+        // 403 Forbidden — permitted to be here, not permitted to do this.
         if (error.response?.status === 403) {
-          navigate("/");
+          navigate("/403", { replace: true });
           return Promise.reject(error);
         }
 
-        // Any other 401 (invalid token, not just expired)
+        // Any other 401 (invalid or revoked token, not merely expired)
         if (error.response?.status === 401) {
           await logOut();
-          navigate("/login");
+          navigate("/login?reason=session-expired", { replace: true });
           return Promise.reject(error);
         }
 

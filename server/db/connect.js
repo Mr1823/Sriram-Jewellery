@@ -222,6 +222,13 @@ const establishConnection = async () => {
       const conn = await mongoose.connect(inMemoryURI);
       console.log(`In-Memory MongoDB Connected: ${conn.connection.host}`);
       await seedInitialData();
+      // Must return the connection, exactly as the Atlas path does. Without it
+      // connectDB caches `undefined`, its `if (globalCache.conn && ...)` guard
+      // never passes, and every request re-enters this function — spinning up a
+      // fresh MongoMemoryServer and re-seeding it. Reads still look fine because
+      // seeding repopulates, but anything written at runtime (OTP hashes, carts,
+      // orders) lands in a database that is discarded before the next request.
+      return conn;
     } catch (fallbackError) {
       console.error(`❌ In-memory MongoDB fallback failed: ${fallbackError.message}`);
     }

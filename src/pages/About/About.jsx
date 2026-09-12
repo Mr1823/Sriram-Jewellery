@@ -81,7 +81,7 @@ const About = () => {
               <div className="relative group">
                 <label className="font-label-caps text-[10px] text-primary block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity">NAME</label>
                 <input 
-                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 transition-all duration-300 outline-none" 
+                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 transition-ui duration-300 outline-none" 
                   placeholder="Name" 
                   type="text" 
                   value={contactForm.name}
@@ -92,7 +92,7 @@ const About = () => {
               <div className="relative group">
                 <label className="font-label-caps text-[10px] text-primary block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity">EMAIL</label>
                 <input 
-                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 transition-all duration-300 outline-none" 
+                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 transition-ui duration-300 outline-none" 
                   placeholder="Email" 
                   type="email"
                   value={contactForm.email}
@@ -103,7 +103,7 @@ const About = () => {
               <div className="relative group">
                 <label className="font-label-caps text-[10px] text-primary block mb-2 opacity-0 group-focus-within:opacity-100 transition-opacity">MESSAGE</label>
                 <textarea 
-                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 resize-none transition-all duration-300 outline-none" 
+                  className="w-full bg-transparent border-t-0 border-x-0 border-b border-sand/50 focus:border-primary focus:ring-0 py-4 px-0 font-body-base text-on-surface placeholder:text-on-surface-variant/50 resize-none transition-ui duration-300 outline-none" 
                   placeholder="How can we assist you?" 
                   rows={4}
                   value={contactForm.message}
@@ -114,7 +114,7 @@ const About = () => {
               <button 
                 type="submit" 
                 disabled={contactSubmitting}
-                className="bg-primary text-white font-button-text tracking-widest px-12 py-5 hover:bg-primary/90 transition-all duration-300 inline-flex items-center gap-4 justify-center cursor-pointer disabled:opacity-70 uppercase w-full sm:w-auto"
+                className="bg-primary text-white font-button-text tracking-widest px-12 py-5 hover:bg-primary/90 transition-ui duration-300 inline-flex items-center gap-4 justify-center cursor-pointer disabled:opacity-70 uppercase w-full sm:w-auto"
               >
                 {contactSubmitting ? <span className="loading loading-spinner loading-md"></span> : "SEND MESSAGE"}
                 {!contactSubmitting && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
@@ -154,7 +154,7 @@ const About = () => {
                   href="https://www.google.com/maps/search/?api=1&query=Sri+Ram+Jewellery+49+Vasantha+Road+Dharapuram"
                   target="_blank"
                   rel="noreferrer"
-                  className="relative h-48 w-full grayscale hover:grayscale-0 transition-all duration-700 overflow-hidden group border border-sand/30 block"
+                  className="relative h-48 w-full grayscale hover:grayscale-0 transition-ui duration-700 overflow-hidden group border border-sand/30 block"
                 >
                   <img
                     className="w-full h-full object-cover"

@@ -146,7 +146,7 @@ const AdminOrders = () => {
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-button-text text-on-surface">{order.name || order.email || "—"}</p>
+                      <p className="font-button-text text-on-surface">{order.name || order.email || order.phone || "—"}</p>
                       <p className="text-[12px] text-outline mt-1">{order.items?.length || 0} items</p>
                     </td>
                     <td className="px-6 py-4">
@@ -172,14 +172,14 @@ const AdminOrders = () => {
                           <button
                             type="button"
                             onClick={() => handleApproval(order._id, "APPROVED")}
-                            className="inline-flex items-center justify-center min-h-11 px-3 py-2 rounded border border-success/40 text-[12px] font-medium text-success hover:bg-success hover:text-white transition-all"
+                            className="inline-flex items-center justify-center min-h-11 px-3 py-2 rounded border border-success/40 text-[12px] font-medium text-success hover:bg-success hover:text-white transition-ui"
                           >
                             Approve
                           </button>
                           <button
                             type="button"
                             onClick={() => handleApproval(order._id, "REJECTED")}
-                            className="inline-flex items-center justify-center min-h-11 px-3 py-2 rounded border border-error/40 text-[12px] font-medium text-error hover:bg-error hover:text-white transition-all"
+                            className="inline-flex items-center justify-center min-h-11 px-3 py-2 rounded border border-error/40 text-[12px] font-medium text-error hover:bg-error hover:text-white transition-ui"
                           >
                             Reject
                           </button>
@@ -223,7 +223,7 @@ const AdminOrders = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link className="inline-flex" to="/order-success" state={{ from: location, orderId: order._id }}>
-                        <button className="inline-flex items-center justify-center min-h-11 px-4 py-2 rounded border border-outline-variant/50 text-[12px] font-medium text-outline hover:text-primary hover:border-primary transition-all">
+                        <button className="inline-flex items-center justify-center min-h-11 px-4 py-2 rounded border border-outline-variant/50 text-[12px] font-medium text-outline hover:text-primary hover:border-primary transition-ui">
                           View
                         </button>
                       </Link>

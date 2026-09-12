@@ -136,7 +136,7 @@ const AddReview = () => {
                 required
                 name="review"
                 placeholder="Share your thoughts on our collection and service..."
-                className="w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary font-body resize-none"
+                className="w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary font-body resize-none"
                 minLength={20}
               />
             </div>
@@ -150,7 +150,7 @@ const AddReview = () => {
                 required
                 name="location"
                 placeholder="e.g. Jaipur, Rajasthan"
-                className="w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary font-body"
+                className="w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary font-body"
                 minLength={3}
               />
             </div>
@@ -158,7 +158,7 @@ const AddReview = () => {
             <div className="pt-6">
               <button 
                 type="submit" 
-                className="px-10 py-4 bg-primary text-white font-body text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all duration-300 cursor-pointer"
+                className="px-10 py-4 bg-primary text-white font-body text-xs font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-ui duration-300 cursor-pointer"
               >
                 Submit Feedback
               </button>

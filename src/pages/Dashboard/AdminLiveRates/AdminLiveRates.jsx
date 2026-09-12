@@ -129,7 +129,7 @@ const AdminLiveRates = () => {
                       required
                       value={goldRate}
                       onChange={(e) => setGoldRate(e.target.value)}
-                      className="w-full pl-6 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base text-on-surface outline-none transition-all placeholder:text-outline/40"
+                      className="w-full pl-6 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base text-on-surface outline-none transition-ui placeholder:text-outline/40"
                       placeholder="e.g. 13230"
                     />
                   </div>
@@ -149,7 +149,7 @@ const AdminLiveRates = () => {
                       required
                       value={silverRate}
                       onChange={(e) => setSilverRate(e.target.value)}
-                      className="w-full pl-6 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base text-on-surface outline-none transition-all placeholder:text-outline/40"
+                      className="w-full pl-6 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base text-on-surface outline-none transition-ui placeholder:text-outline/40"
                       placeholder="e.g. 218"
                     />
                   </div>
@@ -165,7 +165,7 @@ const AdminLiveRates = () => {
                 <button 
                   type="submit" 
                   disabled={isUpdating}
-                  className="bg-primary text-white px-8 py-3 rounded-lg font-button-text hover:bg-primary-container active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none"
+                  className="bg-primary text-white px-8 py-3 rounded-lg font-button-text hover:bg-primary-container active:scale-95 transition-ui shadow-lg shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {isUpdating ? "Saving..." : "Save New Rates"}
                 </button>

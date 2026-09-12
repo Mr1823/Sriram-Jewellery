@@ -19,7 +19,7 @@ const AdminNavigation = () => {
 
   const navLinkClass = (path) => {
     const isActive = location.pathname.includes(path);
-    return `flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-300 ${
+    return `flex items-center gap-4 px-4 py-3 rounded-lg transition-ui duration-300 ${
       isActive
         ? "bg-primary-container text-on-primary-container font-medium shadow-sm"
         : "text-on-surface-variant hover:bg-surface-variant"

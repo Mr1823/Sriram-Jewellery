@@ -3,10 +3,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "../pages/Header/Header";
 import Footer from "../pages/Footer/Footer";
 import { Toaster } from "react-hot-toast";
-import AOS from "aos";
 import { LoginGateProvider } from "../context/LoginGateContext";
 import useResumePendingAction from "../hooks/useResumePendingAction";
-import "aos/dist/aos.css";
 
 const MainLayoutInner = () => {
   useResumePendingAction();
@@ -28,10 +26,6 @@ const MainLayoutInner = () => {
       });
     }
   }, [location]);
-
-  useEffect(() => {
-    AOS.init({ once: true });
-  }, []);
 
   // The timed login nudge lives in LoginGateProvider so it also covers the
   // product page, which is a separate root route with its own provider.

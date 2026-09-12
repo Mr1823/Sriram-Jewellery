@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { AUTH_CODES } from "../../shared/authCodes.js";
 dotenv.config();
 
 export const JWT_SECRET =
@@ -20,13 +21,18 @@ if (!JWT_SECRET) {
  */
 export const verifyJWT = (req, res, next) => {
   if (!JWT_SECRET) {
-    return res.status(503).json({ error: "Authentication is not configured on this server" });
+    return res.status(503).json({
+      error: "Authentication is not configured on this server",
+      code: AUTH_CODES.AUTH_UNCONFIGURED,
+    });
   }
 
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Access token required" });
+    return res
+      .status(401)
+      .json({ error: "Access token required", code: AUTH_CODES.TOKEN_MISSING });
   }
 
   const token = authHeader.split(" ")[1];
@@ -40,10 +46,20 @@ export const verifyJWT = (req, res, next) => {
     };
     next();
   } catch (err) {
+    // This is the ONLY place in the API that may emit TOKEN_EXPIRED, and the
+    // only place that verifies a token at all. The client's interceptor keys
+    // its silent refresh off this exact code — a route that rejected an expired
+    // token by itself, without setting it, would sign the customer out instead
+    // of refreshing. New routes must use this middleware rather than calling
+    // jwt.verify directly.
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Access token expired", code: "TOKEN_EXPIRED" });
+      return res
+        .status(401)
+        .json({ error: "Access token expired", code: AUTH_CODES.TOKEN_EXPIRED });
     }
-    return res.status(401).json({ error: "Invalid access token" });
+    return res
+      .status(401)
+      .json({ error: "Invalid access token", code: AUTH_CODES.TOKEN_INVALID });
   }
 };
 

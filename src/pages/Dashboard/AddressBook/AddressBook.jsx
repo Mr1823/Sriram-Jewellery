@@ -140,9 +140,9 @@ const AddressBook = () => {
         {!isFormVisible && !shippingAdd && (
           <button 
             onClick={() => setIsFormVisible(true)}
-            className="h-64 flex flex-col items-center justify-center gap-4 rounded-xl group cursor-pointer border-2 border-dashed border-primary hover:bg-primary/5 hover:border-solid transition-all duration-300"
+            className="h-64 flex flex-col items-center justify-center gap-4 rounded-xl group cursor-pointer border-2 border-dashed border-primary hover:bg-primary/5 hover:border-solid transition-ui duration-300"
           >
-            <div className="w-12 h-12 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
+            <div className="w-12 h-12 rounded-full border border-primary flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-ui duration-500">
               <span className="material-symbols-outlined">add</span>
             </div>
             <span className="font-button-text text-button-text text-primary uppercase">
@@ -153,7 +153,7 @@ const AddressBook = () => {
 
         {/* Existing Address Card */}
         {!isFormVisible && shippingAdd && (
-          <div className="bg-surface-container-highest p-8 rounded-xl flex flex-col justify-between h-64 relative overflow-hidden group border border-primary-container/10 transition-all duration-400 hover:border-primary-container hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)]">
+          <div className="bg-surface-container-highest p-8 rounded-xl flex flex-col justify-between h-64 relative overflow-hidden group border border-primary-container/10 transition-ui duration-400 hover:border-primary-container hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)]">
             <div>
               <div className="flex justify-between items-start mb-6">
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">
@@ -335,7 +335,7 @@ const AddressBook = () => {
             <div className="pt-6">
               <button
                 type="submit"
-                className="w-full md:w-auto font-button-text text-button-text bg-primary text-white px-10 py-4 hover:bg-primary/90 transition-all uppercase tracking-[0.2em]"
+                className="w-full md:w-auto font-button-text text-button-text bg-primary text-white px-10 py-4 hover:bg-primary/90 transition-ui uppercase tracking-[0.2em]"
               >
                 Save Address
               </button>

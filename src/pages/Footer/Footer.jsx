@@ -39,10 +39,10 @@ const Footer = () => {
               Timeless Craftsmanship. Celebrating your milestones with the purest gold and finest diamonds since 1984.
             </p>
             <div className="flex gap-5">
-              <a className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all" href="#">
+              <a className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-ui" href="#">
                 <span className="material-symbols-outlined text-[20px]">public</span>
               </a>
-              <a className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all" href="#">
+              <a className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-ui" href="#">
                 <span className="material-symbols-outlined text-[20px]">photo_camera</span>
               </a>
             </div>
@@ -63,10 +63,15 @@ const Footer = () => {
           <div className="md:col-span-2 space-y-8">
             <h4 className="font-label-caps text-xs text-primary uppercase tracking-[0.2em] font-bold">Policies</h4>
             <nav className="flex flex-col gap-4">
-              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/">Privacy Policy</Link>
-              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/">Terms of Service</Link>
-              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/">Shipping Info</Link>
-              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/">Returns & Exchange</Link>
+              {/* These four pointed at "/" — four dead links in the footer of
+                  every page. Razorpay activation checks that policies resolve. */}
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal/privacy-policy">Privacy Policy</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal/terms-of-service">Terms of Service</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal/shipping-policy">Shipping Info</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal/return-policy">Returns &amp; Exchange</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal/cancellation-policy">Cancellation</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/help">Help Centre</Link>
+              <Link className="font-body-base text-on-surface-variant hover:text-primary transition-colors flex items-center min-h-11" to="/legal">All policies</Link>
             </nav>
           </div>
 
@@ -76,7 +81,7 @@ const Footer = () => {
             <p className="font-body-base text-on-surface-variant">
               Join our circle for early access to new collections and gold rate alerts.
             </p>
-            <form className="flex border border-primary/20 rounded-sm overflow-hidden group focus-within:ring-1 focus-within:ring-primary/40 transition-all" onSubmit={handleNewsletterSubmit}>
+            <form className="flex border border-primary/20 rounded-sm overflow-hidden group focus-within:ring-1 focus-within:ring-primary/40 transition-ui" onSubmit={handleNewsletterSubmit}>
               <input
                 className="flex-1 bg-white/50 border-none focus:ring-0 px-5 py-3 text-body-base text-on-surface placeholder:text-on-surface-variant/40"
                 placeholder="Email Address"
@@ -86,7 +91,7 @@ const Footer = () => {
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 disabled={isSubscribing}
               />
-              <button className="bg-primary text-white px-8 flex items-center justify-center hover:bg-primary/90 transition-all disabled:opacity-70" type="submit" disabled={isSubscribing}>
+              <button className="bg-primary text-white px-8 flex items-center justify-center hover:bg-primary/90 transition-ui disabled:opacity-70" type="submit" disabled={isSubscribing}>
                 <span className="material-symbols-outlined">send</span>
               </button>
             </form>

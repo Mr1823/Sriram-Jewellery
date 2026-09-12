@@ -21,7 +21,7 @@ const SeasonMasterpieces = () => {
             <span className="font-label-caps text-label-caps text-primary/60 block mb-2">CURATED FOR YOU</span>
             <h2 className="font-headline-md text-headline-md text-primary">The Season's Masterpieces</h2>
           </div>
-          <Link className="font-button-text text-button-text text-primary flex items-center gap-2 min-h-11 hover:gap-4 transition-all group" to="/shop">
+          <Link className="font-button-text text-button-text text-primary flex items-center gap-2 min-h-11 hover:gap-4 transition-ui group" to="/shop">
             View All Collections <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </Link>
         </div>

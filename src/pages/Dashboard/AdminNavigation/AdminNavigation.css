@@ -2,7 +2,9 @@
 .product-collapse-link,
 .sidebar-menu-con .logout-btn {
   border-left: 4px solid transparent;
-  transition: all 0.2s ease-in-out;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.2s;
+  transition-timing-function: var(--ease-in-out);
   width: 100%;
   display: flex;
   align-items: center;
@@ -40,10 +42,10 @@
 .sidebar-menu-con > ul::-webkit-scrollbar-thumb {
   background: var(--pink-gold);
   border-radius: 1rem;
-  visibility: hidden;
-  transition: all 0.9s;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
 }
 
 .sidebar-menu-con > ul:hover::-webkit-scrollbar-thumb {
-  visibility: visible;
+  opacity: 1;
 }

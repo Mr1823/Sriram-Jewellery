@@ -58,7 +58,7 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed z-50 w-full transition-all duration-500 ease-in-out border-b top-0 ${scrolled || !isHome ? 'bg-surface shadow-sm py-2 border-primary/5' : 'bg-transparent py-4 border-white/10'}`}
+        className={`fixed z-50 w-full transition-ui duration-500 ease-in-out border-b top-0 ${scrolled || !isHome ? 'bg-surface shadow-sm py-2 border-primary/5' : 'bg-transparent py-4 border-white/10'}`}
         id="main-nav"
       >
         <div className="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto gap-4">
@@ -130,7 +130,7 @@ const Header = () => {
                   the icon stays 24px and is centred inside it. */}
               <div className="flex items-center gap-0.5 sm:gap-3">
                 <Link
-                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-all`}
+                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-ui`}
                   to="/wishlist"
                   aria-label="Wishlist"
                 >
@@ -138,7 +138,7 @@ const Header = () => {
                 </Link>
 
                 <button
-                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-all`}
+                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-ui`}
                   onClick={() => setShowCartDrawer(true)}
                   aria-label={`Cart${cartCount > 0 ? ` (${cartCount} items)` : ''}`}
                 >
@@ -151,7 +151,7 @@ const Header = () => {
                 </button>
 
                 <Link
-                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-all`}
+                  className={`${touchTarget} ${isHome && !scrolled ? 'text-white hover:scale-110' : 'text-on-surface hover:text-primary'} transition-ui`}
                   to={user ? "/dashboard" : "/login"}
                   aria-label={user ? "My account" : "Sign in"}
                 >

@@ -4,7 +4,7 @@ import { NavLink, useParams } from "react-router-dom";
 const ProductPageNavigation = () => {
   const { id } = useParams();
   
-  const baseClass = "px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.2em] transition-all relative";
+  const baseClass = "px-6 py-4 font-label-caps text-[11px] uppercase tracking-[0.2em] transition-ui relative";
   const inactiveClass = "text-on-surface-variant hover:text-primary";
   const activeClass = "text-primary font-bold";
 

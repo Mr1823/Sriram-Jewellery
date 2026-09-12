@@ -164,7 +164,7 @@ const OrderSuccess = () => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mx-auto mb-12 fade-in-up" style={{ animationDelay: '0.4s' }}>
             <button 
-              className="w-full sm:w-auto px-8 py-4 bg-primary text-on-primary font-button-text tracking-widest text-center hover:scale-[1.02] hover:bg-primary-container transition-all duration-300 disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-4 bg-primary text-on-primary font-button-text tracking-widest text-center hover:scale-[1.02] hover:bg-primary-container transition-ui duration-300 disabled:opacity-50"
               onClick={handleDownloadInvoice}
               disabled={invoiceLoading}
             >

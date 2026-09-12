@@ -67,7 +67,7 @@ const AdminProducts = () => {
           <div className="relative w-48 md:w-72">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
             <input 
-              className="w-full pl-10 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base outline-none transition-all placeholder:text-outline/60" 
+              className="w-full pl-10 pr-4 py-2 bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary text-body-base outline-none transition-ui placeholder:text-outline/60" 
               placeholder="Search products..." 
               type="text" 
               value={searchText}
@@ -75,7 +75,7 @@ const AdminProducts = () => {
             />
           </div>
           <Link to="/dashboard/adminAddProducts">
-            <button className="flex items-center gap-2 bg-primary-container text-white px-4 md:px-6 py-2.5 rounded-lg font-button-text hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10">
+            <button className="flex items-center gap-2 bg-primary-container text-white px-4 md:px-6 py-2.5 rounded-lg font-button-text hover:scale-[1.02] active:scale-95 transition-ui shadow-lg shadow-primary/10">
               <span className="material-symbols-outlined text-[18px]">add</span>
               <span className="hidden md:inline">Add Product</span>
             </button>
@@ -149,17 +149,17 @@ const AdminProducts = () => {
                         checked={product.isActive !== false} 
                         onChange={() => handleToggleVisibility(product._id, product.isActive !== false)}
                       />
-                      <span className={`absolute cursor-pointer top-0 left-0 right-0 bottom-0 transition-all duration-300 rounded-[34px] ${product.isActive !== false ? 'bg-primary-container' : 'bg-outline-variant'} before:absolute before:content-[''] before:h-[16px] before:w-[16px] before:left-[3px] before:bottom-[3px] before:bg-white before:transition-all before:duration-300 before:rounded-full ${product.isActive !== false ? 'before:translate-x-[22px]' : ''}`}></span>
+                      <span className={`absolute cursor-pointer top-0 left-0 right-0 bottom-0 transition-ui duration-300 rounded-[34px] ${product.isActive !== false ? 'bg-primary-container' : 'bg-outline-variant'} before:absolute before:content-[''] before:h-[16px] before:w-[16px] before:left-[3px] before:bottom-[3px] before:bg-white before:transition-ui before:duration-300 before:rounded-full ${product.isActive !== false ? 'before:translate-x-[22px]' : ''}`}></span>
                     </label>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Link to={`/dashboard/adminAddProducts/${product._id}`}>
-                        <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-outline-variant/50 text-outline hover:text-primary hover:border-primary transition-all">
+                        <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-outline-variant/50 text-outline hover:text-primary hover:border-primary transition-ui">
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                         </button>
                       </Link>
-                      <button onClick={() => handleDeleteProduct(product._id)} className="w-9 h-9 flex items-center justify-center rounded-lg border border-outline-variant/50 text-outline hover:text-error hover:border-error transition-all">
+                      <button onClick={() => handleDeleteProduct(product._id)} className="w-9 h-9 flex items-center justify-center rounded-lg border border-outline-variant/50 text-outline hover:text-error hover:border-error transition-ui">
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
                     </div>

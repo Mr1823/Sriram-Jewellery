@@ -332,7 +332,7 @@ const DynamicProduct = () => {
                     <button
                       onClick={handleBuyNow}
                       disabled={isOutOfStock}
-                      className="w-full bg-primary text-white py-5 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                      className="w-full bg-primary text-white py-5 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-ui flex items-center justify-center gap-3 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
                     >
                       <span className="material-symbols-outlined text-sm">bolt</span>
                       BUY NOW
@@ -341,7 +341,7 @@ const DynamicProduct = () => {
                     <button
                       onClick={() => handleAddToCartWishlist("cart")}
                       disabled={isOutOfStock}
-                      className="w-full bg-primary-container text-white py-5 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                      className="w-full bg-primary-container text-white py-5 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-ui flex items-center justify-center gap-3 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
                     >
                       <span className="material-symbols-outlined text-sm">shopping_bag</span>
                       {presentInCart ? "ALREADY IN BAG" : "ADD TO BAG"}
@@ -350,7 +350,7 @@ const DynamicProduct = () => {
                 )}
                 <button 
                   onClick={() => setIsQuoteModalOpen(true)}
-                  className="w-full bg-transparent border border-sand text-primary py-5 font-button-text text-button-text tracking-widest hover:bg-primary/5 active:scale-[0.98] transition-all flex items-center justify-center gap-3 rounded-sm"
+                  className="w-full bg-transparent border border-sand text-primary py-5 font-button-text text-button-text tracking-widest hover:bg-primary/5 active:scale-[0.98] transition-ui flex items-center justify-center gap-3 rounded-sm"
                 >
                   <span className="material-symbols-outlined text-sm">mail</span>
                   ENQUIRE NOW
@@ -416,7 +416,7 @@ const DynamicProduct = () => {
                   type="text" 
                   value={quoteName}
                   onChange={(e) => setQuoteName(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-sm"
+                  className="w-full bg-surface-container-low border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-ui rounded-sm"
                   placeholder="Your Full Name"
                   required 
                 />
@@ -427,7 +427,7 @@ const DynamicProduct = () => {
                   type="tel" 
                   value={quoteMobile}
                   onChange={(e) => setQuoteMobile(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-sm"
+                  className="w-full bg-surface-container-low border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-ui rounded-sm"
                   placeholder="+91"
                   required 
                 />

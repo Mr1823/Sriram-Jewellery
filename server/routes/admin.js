@@ -12,9 +12,27 @@ const router = express.Router();
 // ─── Total Spent (per user) ─────────────────────────────────────────────────
 router.get("/total-spent", verifyJWT, requireAdmin, async (req, res) => {
   try {
+    // Grouped by userId, not email.
+    //
+    // Grouping by "$email" collapsed every order from an OTP customer into a
+    // single `_id: null` bucket, because those accounts have no email — so the
+    // admin table showed one shared total against every customer lacking one.
+    // userId is written on every order at creation and is the real identity, so
+    // it is both correct and unambiguous. This gets more visible, not less, now
+    // that some customers will have an email and others won't.
+    //
+    // `email` is still projected for display and for reconciling old records,
+    // but it is no longer what the rows are keyed on.
     const result = await Order.aggregate([
-      { $group: { _id: "$email", totalSpent: { $sum: "$totalAmount" } } },
-      { $project: { email: "$_id", totalSpent: 1, _id: 0 } },
+      {
+        $group: {
+          _id: "$userId",
+          totalSpent: { $sum: "$totalAmount" },
+          orderCount: { $sum: 1 },
+          email: { $last: "$email" },
+        },
+      },
+      { $project: { userId: "$_id", email: 1, totalSpent: 1, orderCount: 1, _id: 0 } },
       { $sort: { totalSpent: -1 } },
     ]);
     res.json(result);

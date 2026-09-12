@@ -12,6 +12,18 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // True when this visitor arrived holding credentials that turned out to be
+  // dead: the app booted with a stored token, could not refresh it, and signed
+  // them out. Distinct from simply not being signed in, and that difference is
+  // what the sign-in page needs in order to explain itself.
+  //
+  // The axios interceptor handles the other half — a token dying mid-session on
+  // a page that is already open. That path never runs on a cold start, because
+  // PrivateRoute redirects before any request is issued. Relying on the
+  // interceptor alone left the commonest case (returning the next day) bouncing
+  // to /login with no explanation at all.
+  const [sessionExpired, setSessionExpired] = useState(false);
+
   const apiBase = getApiBaseUrl();
 
   // ─── Token helpers ─────────────────────────────────────────────────────────
@@ -195,6 +207,7 @@ const AuthProvider = ({ children }) => {
             if (!newToken) {
               clearTokens();
               setUser(null);
+              setSessionExpired(true);
             }
           }
         }
@@ -207,6 +220,9 @@ const AuthProvider = ({ children }) => {
       if (!newToken) {
         clearTokens();
         setUser(null);
+        // They had a session and it is gone. PrivateRoute reads this to send
+        // them somewhere that says so.
+        setSessionExpired(true);
       }
       setIsAuthLoading(false);
     };
@@ -217,6 +233,7 @@ const AuthProvider = ({ children }) => {
   const value = {
     user,
     isAuthLoading,
+    sessionExpired,
     signUp,
     signIn,
     logOut,

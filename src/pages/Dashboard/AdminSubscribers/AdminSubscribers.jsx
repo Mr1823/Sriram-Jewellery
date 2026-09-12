@@ -53,7 +53,7 @@ const AdminSubscribers = () => {
             type="button"
             onClick={handleCopyAll}
             disabled={!subscribers?.length}
-            className="inline-flex items-center justify-center min-h-11 px-4 py-2 rounded border border-outline-variant/50 text-[12px] font-medium text-outline hover:text-primary hover:border-primary transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center min-h-11 px-4 py-2 rounded border border-outline-variant/50 text-[12px] font-medium text-outline hover:text-primary hover:border-primary transition-ui disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Copy all emails
           </button>

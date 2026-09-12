@@ -88,7 +88,7 @@ const AdminLogin = () => {
               Email Address
             </label>
             <input
-              className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body-base"
+              className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base"
               id="login-email"
               placeholder="Enter your email"
               type="email"
@@ -108,7 +108,7 @@ const AdminLogin = () => {
                 Password
               </label>
               <input
-                className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body-base tracking-widest"
+                className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base tracking-widest"
                 id="login-password"
                 placeholder="••••••••"
                 type="password"
@@ -122,12 +122,21 @@ const AdminLogin = () => {
           {/* Action Button */}
           <div className="pt-6">
             <button
-              className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
+              className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
               type="submit"
               disabled={loginLoading}
             >
               {loginLoading ? <span className="loading loading-spinner loading-md"></span> : "Sign In"}
             </button>
+
+            <p className="text-center mt-6">
+              <Link
+                to="/forgot-password"
+                className="font-body-base text-[13px] text-on-surface-variant hover:text-primary transition-colors underline underline-offset-4"
+              >
+                Forgot your password?
+              </Link>
+            </p>
           </div>
         </form>
 

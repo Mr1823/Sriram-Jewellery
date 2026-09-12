@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import { verifyJWT, requireAdmin } from "../middleware/auth.js";
 import mongoose from "mongoose";
 import { validate, updateProfileSchema, changePasswordSchema, shippingAddressSchema } from "../middleware/validate.js";
+import { normalizeIndianPhone } from "../utils/phone.js";
 
 const BCRYPT_SALT_ROUNDS = 12;
 
@@ -37,15 +38,68 @@ router.get("/me", verifyJWT, async (req, res) => {
 // PATCH /api/users/me — update authenticated user's profile
 router.patch("/me", verifyJWT, validate(updateProfileSchema), async (req, res) => {
   try {
-    const { name, phone, photoURL } = req.body;
+    const { name, phone, photoURL, email } = req.body;
     const updateData = {};
+    const unsetData = {};
     if (name !== undefined) updateData.name = name;
-    if (phone !== undefined) updateData.phone = phone;
     if (photoURL !== undefined) updateData.photoURL = photoURL;
+
+    // Optional contact detail. Not verified, and never used to sign in — the
+    // customer's identity remains their phone number.
+    if (email !== undefined) {
+      const cleaned = String(email).trim().toLowerCase();
+
+      if (cleaned === "") {
+        // Clearing it must REMOVE the field, not write null or "".
+        //
+        // The index is `unique + sparse`. Sparse skips documents where the
+        // field is absent, but null and "" are ordinary values and do get
+        // indexed — so the moment a second customer "cleared" their email,
+        // they would collide with the first on a duplicate-key error that
+        // looks nothing like its cause. OTP accounts are created without the
+        // field at all, and clearing has to return them to exactly that state.
+        unsetData.email = "";
+      } else {
+        // Case-insensitive comparison: "A@x.com" and "a@x.com" are the same
+        // mailbox, and storing both would defeat the uniqueness check even
+        // though the index would happily accept them as distinct strings.
+        const owner = await User.findOne({ email: cleaned });
+        if (owner && String(owner._id) !== String(req.user.userId)) {
+          return res
+            .status(409)
+            .json({ error: "That email address is already linked to another account" });
+        }
+        updateData.email = cleaned;
+      }
+    }
+
+    // Phone is the account's identity, so this route has to apply exactly the
+    // same normalisation as the OTP flow. Writing req.body.phone straight
+    // through was a second way to create the duplicate-account problem — and a
+    // customer could also have taken a number already belonging to someone else.
+    if (phone !== undefined) {
+      const normalized = normalizeIndianPhone(phone);
+      if (!normalized.ok) {
+        return res.status(400).json({ error: normalized.reason });
+      }
+
+      const owner = await User.findOne({ phone: normalized.phone });
+      if (owner && String(owner._id) !== String(req.user.userId)) {
+        return res
+          .status(409)
+          .json({ error: "That mobile number is already linked to another account" });
+      }
+
+      updateData.phone = normalized.phone;
+    }
+
+    const mutation = {};
+    if (Object.keys(updateData).length) mutation.$set = updateData;
+    if (Object.keys(unsetData).length) mutation.$unset = unsetData;
 
     const user = await User.findByIdAndUpdate(
       req.user.userId,
-      updateData,
+      mutation,
       { new: true }
     ).select("-passwordHash");
 
@@ -55,6 +109,21 @@ router.patch("/me", verifyJWT, validate(updateProfileSchema), async (req, res) =
 
     res.json({ success: true, data: user });
   } catch (error) {
+    // The check above is a courtesy, not the guarantee. Two requests can both
+    // pass it and race to write; the unique index is what actually prevents a
+    // shared address, and it reports that as E11000. Translate it into the same
+    // 409 the pre-check returns, so a lost race reads as a collision rather
+    // than as the server breaking.
+    if (error?.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0];
+      return res.status(409).json({
+        error:
+          field === "phone"
+            ? "That mobile number is already linked to another account"
+            : "That email address is already linked to another account",
+      });
+    }
+    console.error("Update profile error:", error);
     res.status(500).json({ error: "Failed to update user profile" });
   }
 });

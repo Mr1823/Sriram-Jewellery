@@ -47,3 +47,6 @@ next-env.d.ts
 
 API_DOCUMENTATION.md
 BACKEND_STRATEGY.md
+
+# claude skills 
+.claude/skills

@@ -172,7 +172,7 @@ const Checkout = () => {
             <h2 className="font-display-lg text-headline-sm mb-8 text-primary">Payment Method</h2>
             <div className="space-y-4">
               <label 
-                className={`flex flex-col p-5 bg-white border cursor-pointer hover:border-primary transition-all group ${paymentMethod === 'card' ? 'border-primary' : 'border-outline-variant'}`}
+                className={`flex flex-col p-5 bg-white border cursor-pointer hover:border-primary transition-ui group ${paymentMethod === 'card' ? 'border-primary' : 'border-outline-variant'}`}
                 onClick={() => setPaymentMethod('card')}
               >
                 <div className="flex items-center justify-between w-full">
@@ -211,7 +211,7 @@ const Checkout = () => {
               </label>
 
               <label 
-                className={`flex items-center justify-between p-5 bg-white border cursor-pointer hover:border-primary transition-all group ${paymentMethod === 'upi' ? 'border-primary' : 'border-outline-variant'}`}
+                className={`flex items-center justify-between p-5 bg-white border cursor-pointer hover:border-primary transition-ui group ${paymentMethod === 'upi' ? 'border-primary' : 'border-outline-variant'}`}
                 onClick={() => setPaymentMethod('upi')}
               >
                 <div className="flex items-center gap-4">
@@ -228,7 +228,7 @@ const Checkout = () => {
               </label>
 
               <label 
-                className={`flex items-center justify-between p-5 bg-white border cursor-pointer hover:border-primary transition-all group ${paymentMethod === 'cod' ? 'border-primary' : 'border-outline-variant'}`}
+                className={`flex items-center justify-between p-5 bg-white border cursor-pointer hover:border-primary transition-ui group ${paymentMethod === 'cod' ? 'border-primary' : 'border-outline-variant'}`}
                 onClick={() => setPaymentMethod('cod')}
               >
                 <div className="flex items-center gap-4">
@@ -252,7 +252,7 @@ const Checkout = () => {
               RETURN TO SHOP
             </Link>
             <button 
-              className="w-full md:w-auto px-12 py-5 bg-primary-container text-on-primary-container font-button-text text-button-text uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10 text-center disabled:opacity-50 disabled:hover:scale-100 flex justify-center items-center gap-2"
+              className="w-full md:w-auto px-12 py-5 bg-primary-container text-on-primary-container font-button-text text-button-text uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-ui shadow-lg shadow-primary/10 text-center disabled:opacity-50 disabled:hover:scale-100 flex justify-center items-center gap-2"
               onClick={handlePlaceOrder}
               disabled={
                 (!paymentInfo && paymentMethod === "card") ||

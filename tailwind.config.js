@@ -3,6 +3,13 @@ import daisyui from "daisyui";
 /** @type {import("tailwindcss").Config} */
 export default {
   darkMode: "class",
+  // Compiles every `hover:` utility to `@media (hover: hover)`. Without it a
+  // tap on a touch device fires a false hover, so cards and buttons animate
+  // on touch and then sit stuck in the hovered state until the next tap
+  // elsewhere. One flag gates all ~30 hover transforms across src/.
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -125,6 +132,18 @@ export default {
       boxShadow: {
         "heritage": "0 20px 40px -10px rgba(139, 100, 71, 0.08)",
         "heritage-lg": "0 30px 60px -15px rgba(63, 42, 34, 0.12)",
+      },
+      // Replaces `transition-all`, which animates every animatable property —
+      // including layout ones like width, height and letter-spacing — off the
+      // GPU. This list is everything the UI here actually animates, and
+      // nothing that triggers layout.
+      transitionProperty: {
+        ui: "color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity, transform, filter",
+      },
+      transitionTimingFunction: {
+        "ease-out-strong": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "ease-in-out-strong": "cubic-bezier(0.77, 0, 0.175, 1)",
+        drawer: "cubic-bezier(0.32, 0.72, 0, 1)",
       },
       animation: {
         "fade-in": "fadeIn 1.2s ease-out forwards",

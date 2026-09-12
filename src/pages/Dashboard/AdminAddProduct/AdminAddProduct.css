@@ -1,10 +1,14 @@
 .category-container {
-  transition: all 0.3s;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
 }
 
 .category-container:focus {
   box-shadow: 0px 0px 3px blue;
-  transition: all 0.3s;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
 }
 
 .badge-container > div > div {

@@ -246,7 +246,7 @@ const Payment = () => {
               <button
                 onClick={handlePayment}
                 disabled={loadingPayment || !scriptLoaded}
-                className="w-full bg-primary text-white py-4 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 rounded-sm"
+                className="w-full bg-primary text-white py-4 font-button-text text-button-text tracking-widest hover:brightness-110 active:scale-[0.98] transition-ui flex items-center justify-center gap-3 rounded-sm"
               >
                 {loadingPayment ? (
                   <span className="loading loading-spinner text-white"></span>

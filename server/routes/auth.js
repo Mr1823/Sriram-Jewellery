@@ -4,8 +4,14 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { User } from "../models/User.js";
 import { RefreshToken } from "../models/RefreshToken.js";
+import { PasswordResetToken } from "../models/PasswordResetToken.js";
+import { sendEmail, renderEmailLayout, emailButton } from "../utils/email.js";
 import { verifyJWT, JWT_SECRET } from "../middleware/auth.js";
-import { otpLimiter, otpVerifyLimiter } from "../middleware/rateLimit.js";
+import { otpLimiter, otpVerifyLimiter, authLimiter } from "../middleware/rateLimit.js";
+import { normalizeIndianPhone } from "../utils/phone.js";
+// These schemas already existed in middleware/validate.js but were wired to
+// nothing — every auth route hand-rolled its own checks.
+import { validate, registerSchema } from "../middleware/validate.js";
 import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
@@ -25,6 +31,10 @@ const ACCESS_TOKEN_EXPIRY = "30m";
 const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 const BCRYPT_SALT_ROUNDS = 12;
 
+// Long enough to find the email and act on it, short enough that a link left in
+// an inbox is not a standing key to the admin dashboard.
+const PASSWORD_RESET_EXPIRY_MS = 45 * 60 * 1000; // 45 minutes
+
 // The fixed OTP that lets any caller sign in as any phone number. It exists so
 // the app is usable while MSG91 is blocked on DLT registration, and it must
 // stay off unless explicitly turned on.
@@ -35,7 +45,21 @@ const TEST_OTP = "123456";
 // leaves it off. Deliberately NOT keyed on NODE_ENV: the old code accepted the
 // test OTP whenever MSG91 was unconfigured, which is exactly the production
 // state, so production accepted 123456 for every number.
-const isTestOtpEnabled = () => process.env.ALLOW_TEST_OTP === "true";
+//
+// Hard gate: even an explicit ALLOW_TEST_OTP=true cannot enable the bypass on
+// Vercel's *production* environment. Vercel sets VERCEL_ENV to
+// "production" | "preview" | "development", so a variable set at project level
+// — which applies to every environment at once, the realistic way this ships
+// enabled — is still refused in production while continuing to work on preview.
+// This is the difference between a convention and a control.
+const isProductionEnv = () =>
+  process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+
+const isTestOtpEnabled = () => {
+  if (process.env.ALLOW_TEST_OTP !== "true") return false;
+  if (isProductionEnv()) return false;
+  return true;
+};
 
 /**
  * Optional allowlist, e.g. TEST_OTP_PHONES="9363750806,9876543210".
@@ -66,9 +90,27 @@ const isSmsConfigured = () =>
 if (isTestOtpEnabled()) {
   const scoped = testOtpPhones();
   console.warn(
-    `⚠️  ALLOW_TEST_OTP=true — the fixed test OTP (123456) is accepted for ${
-      scoped.length ? `these numbers only: ${scoped.join(", ")}` : "ALL phone numbers"
-    }. This is an authentication bypass; turn it off before launch.`
+    "\n" +
+      "══════════════════════════════════════════════════════════════\n" +
+      "⚠️  AUTHENTICATION BYPASS ACTIVE — ALLOW_TEST_OTP=true\n" +
+      `    The fixed OTP ${TEST_OTP} is accepted for ${
+        scoped.length ? `these numbers only: ${scoped.join(", ")}` : "ALL PHONE NUMBERS"
+      }.\n` +
+      `    Environment: VERCEL_ENV=${process.env.VERCEL_ENV || "unset"} ` +
+      `NODE_ENV=${process.env.NODE_ENV || "unset"}\n` +
+      (scoped.length
+        ? ""
+        : "    Anyone who knows a customer's number can sign in as them.\n" +
+          "    Set TEST_OTP_PHONES to confine it, or unset ALLOW_TEST_OTP.\n") +
+      "══════════════════════════════════════════════════════════════\n"
+  );
+} else if (process.env.ALLOW_TEST_OTP === "true") {
+  // Asked for, refused. Say so loudly — otherwise someone sets the variable,
+  // sees sign-in fail on production, and assumes the deploy is broken.
+  console.warn(
+    "⚠️  ALLOW_TEST_OTP=true was set but is REFUSED in a production environment " +
+      `(VERCEL_ENV=${process.env.VERCEL_ENV || "unset"}, NODE_ENV=${process.env.NODE_ENV || "unset"}). ` +
+      "The test OTP is disabled. Configure MSG91 for real delivery."
   );
 }
 
@@ -87,7 +129,7 @@ const generateAccessToken = (user) => {
  * Generate a refresh token and store its hash in MongoDB.
  * Returns the raw refresh token to send to the client.
  */
-const generateRefreshToken = async (userId) => {
+const generateRefreshToken = async (userId, role) => {
   // Generate a random token
   const rawToken = crypto.randomBytes(40).toString("hex");
 
@@ -96,8 +138,18 @@ const generateRefreshToken = async (userId) => {
 
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS);
 
-  // Remove any existing refresh tokens for this user (one active session)
-  await RefreshToken.deleteMany({ userId });
+  // Single-session enforcement, scoped by role.
+  //
+  // For ADMIN it is a deliberate security posture: one live administrative
+  // session, so a leaked token cannot quietly coexist with the real operator.
+  //
+  // For customers it was collateral damage. Shopping on a phone silently ended
+  // the session on the laptop, which reads as the site logging you out at
+  // random — and it is entirely normal to browse on one device and check out on
+  // another. Customers keep concurrent sessions; expiry still bounds them.
+  if (role === "ADMIN") {
+    await RefreshToken.deleteMany({ userId });
+  }
 
   // Store hashed token
   await RefreshToken.create({
@@ -112,10 +164,15 @@ const generateRefreshToken = async (userId) => {
 // ─── POST /api/auth/otp/request ──────────────────────────────────────────────
 router.post("/otp/request", otpLimiter, async (req, res) => {
   try {
-    const { phone } = req.body;
-    if (!phone) {
-      return res.status(400).json({ error: "Phone number is required" });
+    // Normalise BEFORE anything touches the database. The client also
+    // normalises for display, but the server no longer trusts it to: a request
+    // arriving by any other path used to be stored verbatim, which is how one
+    // real number became several accounts.
+    const normalized = normalizeIndianPhone(req.body?.phone);
+    if (!normalized.ok) {
+      return res.status(400).json({ error: normalized.reason });
     }
+    const phone = normalized.phone;
 
     const authKey = process.env.MSG91_AUTH_KEY;
     const templateId = process.env.MSG91_TEMPLATE_ID;
@@ -161,8 +218,12 @@ router.post("/otp/request", otpLimiter, async (req, res) => {
 
     if (smsConfigured) {
       try {
+        // MSG91 wants the country code without a "+", and an unencoded "+" in a
+        // query string decodes to a space — so passing the canonical form
+        // directly would send MSG91 " 919363750806". Strip and encode.
+        const msg91Mobile = encodeURIComponent(phone.replace(/^\+/, ""));
         await axios.post(
-          `https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=${phone}&authkey=${authKey}&otp=${otp}`,
+          `https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=${msg91Mobile}&authkey=${authKey}&otp=${otp}`,
           {}
         );
       } catch (smsError) {
@@ -187,10 +248,16 @@ router.post("/otp/request", otpLimiter, async (req, res) => {
 // ─── POST /api/auth/otp/verify ───────────────────────────────────────────────
 router.post("/otp/verify", otpVerifyLimiter, async (req, res) => {
   try {
-    const { phone, otp } = req.body;
-    if (!phone || !otp) {
+    const { otp } = req.body;
+
+    // Must normalise here too, and identically. The lookup below is by phone,
+    // so if request stores the canonical form and verify searches for the raw
+    // one, no record is ever found and every sign-in fails with "invalid OTP".
+    const normalized = normalizeIndianPhone(req.body?.phone);
+    if (!normalized.ok || !otp) {
       return res.status(400).json({ error: "Phone number and OTP are required" });
     }
+    const phone = normalized.phone;
 
     const user = await User.findOne({ phone });
     if (!user || !user.otpHash || !user.otpExpiresAt) {
@@ -220,7 +287,7 @@ router.post("/otp/verify", otpVerifyLimiter, async (req, res) => {
     await user.save();
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -241,8 +308,28 @@ router.post("/otp/verify", otpVerifyLimiter, async (req, res) => {
 });
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
-router.post("/register", async (req, res) => {
+//
+// DISABLED. No frontend component calls this — customers are created by the OTP
+// flow, and administrators are seeded. An unreachable endpoint that mints
+// credentialled accounts is attack surface with no corresponding feature.
+//
+// It was never an escalation risk: the handler destructures only
+// { name, email, password } and hardcodes role: "USER", so a `role: "ADMIN"` in
+// the body was always ignored. The regression tested for below keeps it that
+// way if the route is ever re-enabled.
+//
+// To re-enable for internal tooling: delete the guard, and keep both the zod
+// `validate(registerSchema)` middleware and the explicit role assignment.
+const REGISTRATION_ENABLED = process.env.ALLOW_EMAIL_REGISTRATION === "true";
+
+router.post("/register", authLimiter, validate(registerSchema), async (req, res) => {
+  if (!REGISTRATION_ENABLED) {
+    return res.status(404).json({ error: "Not found" });
+  }
+
   try {
+    // Destructuring — not `...req.body` — is what makes a `role` in the request
+    // body inert. Never spread request bodies into User.create() here.
     const { name, email, password } = req.body;
 
     if (!email || !password) {
@@ -272,7 +359,7 @@ router.post("/register", async (req, res) => {
 
     // Issue tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id, user.role);
 
     res.status(201).json({
       success: true,
@@ -292,6 +379,12 @@ router.post("/register", async (req, res) => {
 });
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
+// Deliberately NOT wrapped in validate(loginSchema). Sign-in is a lookup, not a
+// creation: enforcing strict email syntax here cannot improve security (the
+// bcrypt compare is the gate) and can only lock out accounts that already
+// exist. The seeded administrator is exactly that case — "admin@buildwithus"
+// has no TLD, so z.email() rejects it and the only admin account could no
+// longer sign in. Format validation belongs on account creation.
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -318,7 +411,7 @@ router.post("/login", async (req, res) => {
 
     // Issue tokens
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -371,7 +464,7 @@ router.post("/refresh", async (req, res) => {
 
     // Issue new access token (rotate refresh token for extra security)
     const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = await generateRefreshToken(user._id);
+    const newRefreshToken = await generateRefreshToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -401,6 +494,146 @@ router.post("/logout", verifyJWT, async (req, res) => {
   } catch (error) {
     console.error("Logout error:", error);
     res.status(500).json({ error: "Logout failed" });
+  }
+});
+
+// ─── POST /api/auth/password/forgot ──────────────────────────────────────────
+//
+// Password sign-in exists only for administrators, so this is the administrator
+// recovery path. Customers authenticate by OTP and have no password to reset.
+router.post("/password/forgot", authLimiter, async (req, res) => {
+  // Always the same answer, whatever happens below. Telling a caller that an
+  // address is unknown turns this endpoint into a way to enumerate which emails
+  // are administrator accounts — the highest-value thing to know about this
+  // system. Also returned when the address belongs to a customer.
+  const genericResponse = {
+    success: true,
+    message: "If that email belongs to an administrator account, a reset link is on its way.",
+  };
+
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    // Only administrators; only accounts that already had a password.
+    if (!user || user.role !== "ADMIN" || !user.passwordHash) {
+      console.warn(`Password reset requested for a non-eligible address (${email}).`);
+      return res.json(genericResponse);
+    }
+
+    // One live reset at a time — requesting a new link invalidates the old one.
+    await PasswordResetToken.deleteMany({ userId: user._id });
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    await PasswordResetToken.create({
+      userId: user._id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS),
+      requestedIp: req.ip,
+      requestedUserAgent: req.headers["user-agent"] || null,
+    });
+
+    const base = (process.env.PUBLIC_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
+    const resetUrl = `${base}/reset-password?token=${rawToken}`;
+
+    const result = await sendEmail({
+      to: email,
+      subject: "Reset your Sri Ram Jewellery administrator password",
+      tag: "password-reset",
+      html: renderEmailLayout({
+        heading: "Reset your password",
+        intro:
+          "We received a request to reset the password for your administrator account. " +
+          `This link is valid for ${PASSWORD_RESET_EXPIRY_MS / 60000} minutes and can be used once.`,
+        bodyHtml:
+          emailButton(resetUrl, "Choose a new password") +
+          `<p style="margin:20px 0 0;font-size:13px;line-height:1.6;color:#8d8279;word-break:break-all;">
+             If the button does not work, paste this into your browser:<br>${resetUrl}
+           </p>`,
+        footerNote:
+          "If you did not request this, you can ignore this email — your password has not changed. " +
+          "If you receive these repeatedly, someone may know your email address; consider changing it.",
+      }),
+    });
+
+    if (!result.ok) {
+      // The token exists but the link never left the building. Say so: unlike an
+      // order confirmation, a silent failure here leaves the administrator
+      // waiting indefinitely for an email that is not coming.
+      console.error("Password reset email failed to send:", result.error);
+      return res.status(502).json({
+        error:
+          "We could not send the reset email. Check the mail provider configuration, " +
+          "or use the command-line recovery script.",
+      });
+    }
+
+    if (result.dryRun) {
+      console.warn(
+        `✉️  Email is in dry-run mode — the reset link was NOT emailed. Use it directly:\n   ${resetUrl}`
+      );
+    }
+
+    return res.json(genericResponse);
+  } catch (error) {
+    console.error("Password forgot error:", error);
+    return res.status(500).json({ error: "Could not process the reset request" });
+  }
+});
+
+// ─── POST /api/auth/password/reset ───────────────────────────────────────────
+router.post("/password/reset", authLimiter, async (req, res) => {
+  try {
+    const { token, password } = req.body || {};
+
+    if (!token || !password) {
+      return res.status(400).json({ error: "Reset token and new password are required" });
+    }
+    if (String(password).length < 8) {
+      // Deliberately stricter than the 6 used elsewhere: this password is the
+      // only thing standing between a stranger and the admin dashboard.
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(String(token)).digest("hex");
+    const record = await PasswordResetToken.findOne({ tokenHash });
+
+    // One message for every failure mode — expired, spent, forged, unknown.
+    const invalid = () =>
+      res.status(400).json({ error: "This reset link is invalid or has expired. Request a new one." });
+
+    if (!record) return invalid();
+    if (record.usedAt) return invalid();
+    if (record.expiresAt < new Date()) return invalid();
+
+    const user = await User.findById(record.userId);
+    if (!user || user.role !== "ADMIN") return invalid();
+
+    user.passwordHash = await bcrypt.hash(String(password), BCRYPT_SALT_ROUNDS);
+    await user.save();
+
+    // Burn the token, then end every existing session. Whoever triggered this
+    // reset may have been an intruder holding a live token; changing the
+    // password while leaving their session alive achieves nothing.
+    record.usedAt = new Date();
+    await record.save();
+    await RefreshToken.deleteMany({ userId: user._id });
+
+    console.warn(`🔐 Administrator password reset completed for ${user.email}.`);
+
+    return res.json({
+      success: true,
+      message: "Your password has been changed. Sign in with your new password.",
+    });
+  } catch (error) {
+    console.error("Password reset error:", error);
+    return res.status(500).json({ error: "Could not reset the password" });
   }
 });
 

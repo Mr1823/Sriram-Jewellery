@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import CustomHelmet from "../CustomHelmet/CustomHelmet";
 import usePhoneAuthFlow from "../../hooks/usePhoneAuthFlow";
 
@@ -20,6 +20,8 @@ const PhoneAuthForm = ({
   bottomLinkLabel,
 }) => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get("reason") === "session-expired";
   const {
     step,
     phoneNumber,
@@ -82,6 +84,21 @@ const PhoneAuthForm = ({
             <p className="font-body-base text-on-surface-variant text-sm">{heading.subtitle}</p>
           </div>
 
+          {/* Why they are here, when they did not choose to be. Shown only on
+              step 1 and suppressed once a real error replaces it, so the two
+              never stack and contradict each other. */}
+          {sessionExpired && !authError && step === 1 && (
+            <div className="w-full mb-6 p-4 border border-secondary/40 bg-secondary/10 text-on-surface text-sm flex items-start gap-2 rounded-sm">
+              <span className="material-symbols-outlined text-[20px] text-secondary flex-none" aria-hidden="true">
+                schedule
+              </span>
+              <span>
+                Your session expired, so we signed you out. Sign in again to pick
+                up where you left off — your cart and wishlist are saved.
+              </span>
+            </div>
+          )}
+
           {authError && (
             <div className="w-full mb-6 p-4 bg-error-container text-on-error-container text-sm font-semibold flex items-center gap-2 animate-fade-in-up">
               <span className="material-symbols-outlined text-[20px]">error</span>
@@ -105,7 +122,7 @@ const PhoneAuthForm = ({
                   </span>
                   <input
                     id="phone-auth-phone"
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body-base tracking-widest"
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base tracking-widest"
                     placeholder="98765 43210"
                     type="tel"
                     maxLength={10}
@@ -123,7 +140,7 @@ const PhoneAuthForm = ({
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
+                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
                 >
                   {authLoading ? <span className="loading loading-spinner loading-md"></span> : "Send OTP"}
                 </button>
@@ -136,7 +153,7 @@ const PhoneAuthForm = ({
             <form className="space-y-8" onSubmit={handleSubmit(onVerifyOtp)}>
               <div className="text-center">
                 <input
-                  className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body-base tracking-[1em] text-center text-xl"
+                  className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base tracking-[1em] text-center text-xl"
                   placeholder="------"
                   type="text"
                   maxLength={6}
@@ -151,7 +168,7 @@ const PhoneAuthForm = ({
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
+                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
                 >
                   {authLoading ? <span className="loading loading-spinner loading-md"></span> : "Verify & Continue"}
                 </button>
@@ -189,7 +206,7 @@ const PhoneAuthForm = ({
                 </label>
                 <input
                   id="phone-auth-name"
-                  className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body-base"
+                  className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base"
                   placeholder="Enter your full name"
                   type="text"
                   {...register("name", { required: true, minLength: 2 })}
@@ -201,11 +218,47 @@ const PhoneAuthForm = ({
                 )}
               </div>
 
+              <div>
+                <label
+                  className="font-label-caps text-[11px] text-on-surface-variant uppercase tracking-[0.2em] mb-2 block"
+                  htmlFor="phone-auth-email"
+                >
+                  Email{" "}
+                  <span className="normal-case tracking-normal text-on-surface-variant/60">
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  id="phone-auth-email"
+                  className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body-base"
+                  placeholder="you@example.com"
+                  type="email"
+                  autoComplete="email"
+                  {...register("email", {
+                    // Optional by design — never block someone from finishing
+                    // signup over a field they did not have to fill in. Format
+                    // is checked only when something was actually typed.
+                    validate: (v) =>
+                      !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ||
+                      "Enter a valid email address",
+                  })}
+                />
+                {errors.email ? (
+                  <span className="text-error text-xs mt-1 block font-semibold">
+                    {errors.email.message}
+                  </span>
+                ) : (
+                  <span className="text-on-surface-variant/70 text-xs mt-1.5 block">
+                    For order updates. You'll still sign in with your phone number.
+                  </span>
+                )}
+              </div>
+
               <div className="pt-4">
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
+                  className="w-full bg-primary text-white py-4 md:py-5 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:hover:bg-primary cursor-pointer"
                 >
                   {authLoading ? <span className="loading loading-spinner loading-md"></span> : "Continue"}
                 </button>

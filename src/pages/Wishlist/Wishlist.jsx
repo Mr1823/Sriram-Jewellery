@@ -80,7 +80,7 @@ const Wishlist = () => {
                 const isQuoteOnly = productDetails.isQuoteOnly;
                 
                 return (
-                  <div key={item._id} className="group relative flex flex-col h-full bg-surface-container border border-sand/30 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] hover:border-primary-container/60 hover:-translate-y-1">
+                  <div key={item._id} className="group relative flex flex-col h-full bg-surface-container border border-sand/30 overflow-hidden transition-ui duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] hover:border-primary-container/60 hover:-translate-y-1">
                     <div className="aspect-[4/5] overflow-hidden relative">
                       <Link to={`/products/${item.productId}/description`}>
                         <img
@@ -90,7 +90,7 @@ const Wishlist = () => {
                         />
                       </Link>
                       <button
-                        className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary transition-all duration-300 hover:bg-white hover:scale-110 cursor-pointer"
+                        className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary transition-ui duration-300 hover:bg-white hover:scale-110 cursor-pointer"
                         onClick={() => handleDeleteFromWishlist(item._id)}
                         aria-label="Remove from Wishlist"
                       >
@@ -149,7 +149,7 @@ const Wishlist = () => {
               <h3 className="font-headline-sm text-headline-sm text-on-surface mb-2">Awaiting Inspiration</h3>
               <p className="font-body-base text-on-surface-variant max-w-md mb-8">Discover our meticulously curated collections and find pieces that resonate with your unique story.</p>
               <Link to="/shop">
-                <button className="px-12 py-4 border border-outline-variant text-primary font-button-text text-button-text hover:bg-surface-variant transition-all duration-500 cursor-pointer uppercase tracking-widest text-[11px]">
+                <button className="px-12 py-4 border border-outline-variant text-primary font-button-text text-button-text hover:bg-surface-variant transition-ui duration-500 cursor-pointer uppercase tracking-widest text-[11px]">
                   BROWSE COLLECTION
                 </button>
               </Link>

@@ -35,6 +35,16 @@ import AdminOrders from "../pages/Dashboard/AdminOrders/AdminOrders";
 import AdminQuoteRequests from "../pages/Dashboard/AdminQuoteRequests/AdminQuoteRequests";
 import AdminLiveRates from "../pages/Dashboard/AdminLiveRates/AdminLiveRates";
 import About from "../pages/About/About";
+import LegalIndex from "../pages/Legal/LegalIndex";
+import LegalPage from "../components/LegalPage/LegalPage";
+import HelpCenter from "../pages/HelpCenter/HelpCenter";
+import Forbidden from "../pages/Forbidden/Forbidden";
+import PaymentFailed from "../pages/PaymentFailed/PaymentFailed";
+import PaymentPending from "../pages/PaymentPending/PaymentPending";
+import Onboarding from "../pages/Onboarding/Onboarding";
+import Billing from "../pages/Dashboard/Billing/Billing";
+import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword/ResetPassword";
 
 const router = createBrowserRouter([
   {
@@ -61,6 +71,16 @@ const router = createBrowserRouter([
       {
         path: "admin-login",
         element: <AdminLogin />,
+      },
+      // Both public by necessity — the whole point is being reachable while
+      // locked out of the account.
+      {
+        path: "forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
       },
       {
         path: "register",
@@ -96,6 +116,49 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      // Payment outcomes are distinct destinations, not one page with a flag —
+      // each needs its own next action, and "pending" must not offer a retry.
+      {
+        path: "payment-failed",
+        element: (
+          <PrivateRoute>
+            <PaymentFailed />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "payment-pending",
+        element: (
+          <PrivateRoute>
+            <PaymentPending />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "welcome",
+        element: (
+          <PrivateRoute>
+            <Onboarding />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "help",
+        element: <HelpCenter />,
+      },
+      {
+        path: "legal",
+        element: <LegalIndex />,
+      },
+      {
+        // One route serves all ten policies from the content model.
+        path: "legal/:slug",
+        element: <LegalPage />,
+      },
+      {
+        path: "403",
+        element: <Forbidden />,
+      },
     ],
   },
   {
@@ -125,6 +188,10 @@ const router = createBrowserRouter([
           {
             path: "addReview",
             element: <AddReview />,
+          },
+          {
+            path: "billing",
+            element: <Billing />,
           },
           {
             path: "accountDetails",

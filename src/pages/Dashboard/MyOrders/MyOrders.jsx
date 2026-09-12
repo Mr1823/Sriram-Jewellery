@@ -3,9 +3,10 @@ import useOrders from "../../../hooks/useOrders";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import { ListSkeleton } from "../../../components/Skeleton/Skeleton";
 
 const MyOrders = () => {
-  const { orders, refetch } = useOrders();
+  const { orders, isOrdersLoading, refetch } = useOrders();
   const [axiosSecure] = useAxiosSecure();
   const navigate = useNavigate();
 
@@ -74,7 +75,12 @@ const MyOrders = () => {
         <h1 className="font-display-lg text-display-lg text-primary">My Orders</h1>
       </div>
 
-      {!orders?.length ? (
+      {/* Loading is checked before emptiness. Without this the page rendered
+          "your order box is empty" during every fetch — telling a customer who
+          does have orders that they have none. */}
+      {isOrdersLoading ? (
+        <ListSkeleton rows={3} />
+      ) : !orders?.length ? (
         <div className="flex flex-col items-center justify-center py-16 text-center" id="empty-state">
           <div className="w-24 h-24 rounded-full bg-surface-container-highest flex items-center justify-center mb-8">
             <span className="material-symbols-outlined text-4xl text-outline">shopping_bag</span>
@@ -88,7 +94,7 @@ const MyOrders = () => {
           </p>
           <Link 
             to="/shop" 
-            className="font-button-text text-button-text border border-primary px-10 py-4 hover:bg-primary hover:text-white transition-all uppercase tracking-[0.2em] cursor-pointer"
+            className="font-button-text text-button-text border border-primary px-10 py-4 hover:bg-primary hover:text-white transition-ui uppercase tracking-[0.2em] cursor-pointer"
           >
             Start Shopping
           </Link>
@@ -145,7 +151,7 @@ const MyOrders = () => {
             return (
               <div 
                 key={order._id} 
-                className="p-6 md:p-8 bg-surface-container-low/50 border border-sand/30 group cursor-pointer relative overflow-hidden transition-all duration-500 hover:bg-white hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)]"
+                className="p-6 md:p-8 bg-surface-container-low/50 border border-sand/30 group cursor-pointer relative overflow-hidden transition-ui duration-500 hover:bg-white hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)]"
                 onClick={() => navigateToOrder(order._id)}
               >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
@@ -222,14 +228,14 @@ const MyOrders = () => {
                     {isProcessing && (
                       <button 
                         onClick={(e) => handleDeleteOrder(order, e)}
-                        className="font-button-text text-button-text text-error/80 border border-error/30 px-4 py-2 hover:bg-error hover:text-white transition-all uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                        className="font-button-text text-button-text text-error/80 border border-error/30 px-4 py-2 hover:bg-error hover:text-white transition-ui uppercase tracking-widest flex items-center gap-2 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-[16px]">cancel</span> Cancel Order
                       </button>
                     )}
                     <button 
                       onClick={(e) => { e.stopPropagation(); navigateToOrder(order._id); }}
-                      className="flex-1 sm:flex-none font-button-text text-button-text bg-primary text-white px-6 py-2 hover:bg-primary/90 transition-all uppercase tracking-widest cursor-pointer"
+                      className="flex-1 sm:flex-none font-button-text text-button-text bg-primary text-white px-6 py-2 hover:bg-primary/90 transition-ui uppercase tracking-widest cursor-pointer"
                     >
                       {isDelivered ? 'Buy Again' : 'Track Order'}
                     </button>

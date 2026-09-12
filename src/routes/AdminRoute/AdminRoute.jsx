@@ -15,12 +15,17 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  // Check admin from JWT user or DB user
+  // Check admin from JWT user or DB user.
+  // NOTE: `userFromDB?.admin` is dead — the User schema has no `admin` field
+  // (it is `role`), so that clause is always undefined. It fails closed, so
+  // nothing is exposed, but it should be deleted rather than trusted.
   if (user && (user.role === "ADMIN" || userFromDB?.admin || userFromDB?.role === "ADMIN")) {
     return children;
   }
 
-  return <Navigate to={"/"} />;
+  // Was a silent redirect to "/", which dropped anyone following an admin link
+  // onto the homepage with no explanation of what happened.
+  return <Navigate to="/403" replace />;
 };
 
 export default AdminRoute;

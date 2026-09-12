@@ -1,9 +1,13 @@
+/* Named properties instead of `all`, which animated every inherited
+   property off the GPU. Both directions use ease-out: ease-in starts
+   slow and delays the exact moment the user is watching. */
 .img-zoom-hint {
-  transition: all 0.4s ease-out;
+  transition:
+    opacity var(--duration-hover) var(--ease-out),
+    visibility var(--duration-hover) var(--ease-out);
 }
 
 .product-img-con:hover .img-zoom-hint {
   opacity: 0;
   visibility: hidden;
-  transition: all 0.4s ease-in;
 }

@@ -4,6 +4,7 @@ import useProducts from '../../../hooks/useProducts';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../../components/ProductCard/ProductCard';
 import useCategories from '../../../hooks/useCategories';
+import { ProductCardSkeleton } from '../../../components/Skeleton/Skeleton';
 
 const Shop = () => {
   const [products, isProductsLoading] = useProducts();
@@ -272,8 +273,11 @@ const Shop = () => {
         {/* Product Grid */}
         {isProductsLoading ? (
           <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-16">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="animate-pulse bg-surface-container aspect-[4/5] rounded-sm"></div>
+            {/* Shaped like the real card — image, category, name, price — so
+                nothing shifts when data lands. The blocks this replaced were
+                image-only, so every tile jumped once its text appeared. */}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
             ))}
           </section>
         ) : sortedProducts.length > 0 ? (

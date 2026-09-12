@@ -24,10 +24,14 @@ const ProductCard = ({ product }) => {
 
   return (
     <article className="group flex flex-col gap-5 cursor-pointer" onClick={handleCardClick}>
-      <div className="relative aspect-[4/5] bg-surface-container-low overflow-hidden border border-gold/30 group-hover:border-gold/60 transition-colors duration-500 rounded-sm">
-        <img 
-          alt={product.name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+      <div className="relative aspect-[4/5] bg-surface-container-low overflow-hidden border border-gold/30 group-hover:border-gold/60 transition-colors duration-200 ease-out rounded-sm">
+        {/* 200ms, not 700ms. This is the most-hovered element in the app —
+            every card in every grid — and at 700ms the image was still
+            settling long after the cursor had moved on, which reads as lag
+            rather than elegance. */}
+        <img
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ease-out"
           src={optimizeCloudinaryUrl(product.images?.[0] || product.img, { width: 500 }) || "https://placehold.co/400x500"}
         />
         <button 
@@ -87,7 +91,7 @@ const ProductCard = ({ product }) => {
              e.stopPropagation();
              handleCardClick(); // For now just go to detail, can be Add to Cart later
           }}
-          className="mt-2 font-button-text text-button-text text-primary border border-primary/40 px-8 py-2.5 hover:bg-primary hover:text-on-primary transition-all duration-300 rounded-sm w-full max-w-[200px]"
+          className="mt-2 font-button-text text-button-text text-primary border border-primary/40 px-8 py-2.5 hover:bg-primary hover:text-on-primary transition-ui duration-300 rounded-sm w-full max-w-[200px]"
         >
           View Details
         </button>

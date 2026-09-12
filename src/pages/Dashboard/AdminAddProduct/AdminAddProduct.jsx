@@ -279,7 +279,7 @@ const AdminAddProduct = () => {
             className="loginRegisterForm my-10 flex flex-col md:flex-row md:items-start md:justify-between gap-8 relative"
           >
             <div className="md:w-[65%]">
-              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-all rounded-xl">
+              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-ui rounded-xl">
                 <h4 className="font-display-md text-headline-sm text-primary border-b border-sand/30 pb-4 mb-8">
                   Basic Information
                 </h4>
@@ -290,7 +290,7 @@ const AdminAddProduct = () => {
                   <input
                     type="text"
                     {...register("name", { required: true })}
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                   />
                   {errors.name && (
                     <span className="text-error mt-1 block">
@@ -305,7 +305,7 @@ const AdminAddProduct = () => {
                   <textarea
                     name="description"
                     rows="8"
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary resize-none"
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary resize-none"
                     {...register("description")}
                   ></textarea>
                 </div>
@@ -316,7 +316,7 @@ const AdminAddProduct = () => {
                   <textarea
                     name="advantages"
                     rows="4"
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary resize-none"
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary resize-none"
                     {...register("advantages")}
                     placeholder="Separate each advantage with comma(,)"
                   ></textarea>
@@ -347,7 +347,7 @@ const AdminAddProduct = () => {
                       <p className="text-outline font-label-caps tracking-[0.1em] text-xs uppercase">Metal *</p>
                       <select
                         {...register("metalType", { required: !isQuoteOnlyValue })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary"
                       >
                         <option value="gold">Gold</option>
                         <option value="silver">Silver</option>
@@ -366,7 +366,7 @@ const AdminAddProduct = () => {
                         type="number"
                         step="0.01"
                         {...register("weight", { required: !isQuoteOnlyValue })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                       />
                       {errors.weight && (
                         <span className="text-error mt-1 block">Weight is required</span>
@@ -381,7 +381,7 @@ const AdminAddProduct = () => {
                         min="0"
                         max="100"
                         {...register("wastagePercent", { required: !isQuoteOnlyValue, min: 0, max: 100 })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                       />
                       {errors.wastagePercent && (
                         <span className="text-error mt-1 block">Valid wastage % is required (0-100)</span>
@@ -396,7 +396,7 @@ const AdminAddProduct = () => {
                         min="0"
                         max="100"
                         {...register("gstPercent", { required: !isQuoteOnlyValue, min: 0, max: 100 })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                       />
                       {errors.gstPercent && (
                         <span className="text-error mt-1 block">Valid GST % is required (0-100)</span>
@@ -418,7 +418,7 @@ const AdminAddProduct = () => {
                         type="number"
                         step="0.01"
                         {...register("price")}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                       />
                     </div>
 
@@ -430,7 +430,7 @@ const AdminAddProduct = () => {
                           type="number"
                           step="0.01"
                           {...register("discountPrice")}
-                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                           placeholder="if available"
                         />
                       </div>
@@ -441,7 +441,7 @@ const AdminAddProduct = () => {
             </div>
 
             <div className="md:w-[35%]">
-              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-all rounded-xl">
+              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-ui rounded-xl">
                 <h4 className="font-display-md text-headline-sm text-primary border-b border-sand/30 pb-4 mb-8">
                   Upload Image
                 </h4>
@@ -488,7 +488,7 @@ const AdminAddProduct = () => {
                 </div>
               </div>
 
-              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-all rounded-xl mt-8">
+              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-ui rounded-xl mt-8">
                 <h4 className="font-display-md text-headline-sm text-primary border-b border-sand/30 pb-4 mb-8">
                   Product Details
                 </h4>
@@ -504,7 +504,7 @@ const AdminAddProduct = () => {
                       <>
                         <select
                           {...field}
-                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary"
+                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary"
                         >
                           <option value="" disabled>
                             Select an option
@@ -543,7 +543,7 @@ const AdminAddProduct = () => {
                 </div>
               </div>
 
-              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-all rounded-xl mt-8">
+              <div className="bg-surface-container-low/50 border border-sand/30 p-6 md:p-8 hover:bg-white transition-ui rounded-xl mt-8">
                 <h4 className="font-display-md text-headline-sm text-primary border-b border-sand/30 pb-4 mb-8">
                   Product Attributes
                 </h4>
@@ -553,7 +553,7 @@ const AdminAddProduct = () => {
                   <input
                     type="number"
                     {...register("stock", { required: true })}
-                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary"
+                    className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary"
                   />
                   {errors.stock && (
                     <span className="text-error mt-1 block">
@@ -573,7 +573,7 @@ const AdminAddProduct = () => {
                       <>
                         <select
                           {...field}
-                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary"
+                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary"
                         >
                           <option value="">
                             Select the size (Optional)
@@ -605,7 +605,7 @@ const AdminAddProduct = () => {
                       <>
                         <select
                           {...field}
-                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-all duration-300 outline-none focus:border-primary"
+                          className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 text-on-surface transition-ui duration-300 outline-none focus:border-primary"
                         >
                           <option value="">
                             Select the carate (Optional)
@@ -631,14 +631,14 @@ const AdminAddProduct = () => {
             {dynamicProduct ? (
               <button
                 type="submit"
-                className="md:absolute md:-top-20 md:right-0 bg-primary text-white py-4 md:py-5 px-8 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] w-full md:w-auto"
+                className="md:absolute md:-top-20 md:right-0 bg-primary text-white py-4 md:py-5 px-8 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] w-full md:w-auto"
               >
                 Publish Edit
               </button>
             ) : (
               <button
                 type="submit"
-                className="absolute -top-20 right-0 bg-primary text-white py-4 md:py-5 px-8 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-all duration-500 transform hover:scale-[1.01] active:scale-[0.98] w-full md:w-auto"
+                className="absolute -top-20 right-0 bg-primary text-white py-4 md:py-5 px-8 font-button-text uppercase tracking-[0.2em] text-[12px] hover:bg-primary-container transition-ui duration-500 transform hover:scale-[1.01] active:scale-[0.98] w-full md:w-auto"
               >
                 Publish
               </button>

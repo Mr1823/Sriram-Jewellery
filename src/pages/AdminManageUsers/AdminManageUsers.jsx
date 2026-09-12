@@ -4,6 +4,7 @@ import useUserInfo from "../../hooks/useUserInfo";
 import { Link } from "react-router-dom";
 import { GrUserAdmin, GrTrash } from "react-icons/gr";
 import { Pagination } from "react-pagination-bar";
+import { userDisplayName, isIncompleteProfile } from "../../utils/displayName";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import useAuthContext from "../../hooks/useAuthContext";
@@ -122,34 +123,61 @@ const AdminManageUsers = () => {
                           <div className="flex items-center gap-3">
                             <img
                               src={user.photoURL || "/placeholder-user.png"}
-                              alt={user.name}
+                              alt=""
                               referrerPolicy="no-referrer"
                               className="w-10 h-10 rounded-full border border-outline-variant/30 object-cover"
                             />
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="font-medium text-on-surface">{user.name}</h4>
+                                {/* OTP customers who abandoned step 3 have no
+                                    name and no email — this rendered an empty
+                                    cell, which looks like broken data rather
+                                    than an incomplete signup. */}
+                                <h4 className="font-medium text-on-surface">
+                                  {userDisplayName(user)}
+                                </h4>
                                 {user?.role === "ADMIN" && (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-caps text-[10px]">
                                     Admin
                                   </span>
                                 )}
+                                {isIncompleteProfile(user) && (
+                                  <span
+                                    className="inline-flex items-center px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-label-caps text-[10px]"
+                                    title="Verified their number but never submitted a name"
+                                  >
+                                    No name
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-[12px] text-outline mt-0.5">{user.email}</div>
+                              <div className="text-[12px] text-outline mt-0.5">
+                                {user.email || user.phone || "—"}
+                              </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-on-surface-variant">{user.createdAt.slice(0, 10)}</td>
+                        <td className="px-6 py-4 text-sm text-on-surface-variant">
+                          {user.createdAt ? String(user.createdAt).slice(0, 10) : "—"}
+                        </td>
                         <td className="px-6 py-4 text-sm text-on-surface-variant">
                           {user.shippingAddress
                             ? user.shippingAddress?.country
                             : "-Not Added-"}
                         </td>
                         <td className="px-6 py-4 font-medium text-on-surface">
-                          $
-                          {totalSpentArray
-                            ?.find((item) => item.email === user.email)
-                            ?.totalSpent?.toFixed(2) || 0}
+                          {/* Keyed on user id, matching the aggregation.
+                              Matching on email attributed spend wrongly: OTP
+                              customers have no email, so `item.email ===
+                              user.email` held for every one of them and they
+                              all showed the same total. String() on both sides
+                              because the id is an ObjectId in Mongo and a
+                              string in the JSON that reaches here. */}
+                          ₹
+                          {(
+                            totalSpentArray?.find(
+                              (item) => String(item.userId) === String(user._id)
+                            )?.totalSpent || 0
+                          ).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -157,7 +185,7 @@ const AdminManageUsers = () => {
                               <div className="tooltip" data-tip="Make Admin">
                                 <button
                                   type="button"
-                                  aria-label={`Make ${user.name || user.email} an admin`}
+                                  aria-label={`Make ${userDisplayName(user)} an admin`}
                                   className="inline-flex items-center justify-center w-11 h-11 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors"
                                   onClick={() => handleMakeAdmin(user._id)}
                                 >
@@ -169,7 +197,7 @@ const AdminManageUsers = () => {
                             <div className="tooltip" data-tip="Remove User">
                               <button
                                 type="button"
-                                aria-label={`Remove ${user.name || user.email}`}
+                                aria-label={`Remove ${userDisplayName(user)}`}
                                 className="inline-flex items-center justify-center w-11 h-11 rounded text-error/70 hover:text-error hover:bg-error-container/50 transition-colors"
                                 onClick={() => handleDeleteUser(user._id)}
                               >

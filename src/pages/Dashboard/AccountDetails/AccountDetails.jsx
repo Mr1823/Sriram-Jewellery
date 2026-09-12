@@ -9,6 +9,8 @@ const AccountDetails = () => {
   const [showPasswordFields, setShowPasswordFields] = useState(false);
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -18,13 +20,27 @@ const AccountDetails = () => {
 
   React.useEffect(() => {
     if (userFromDB?.name) setName(userFromDB.name);
+    // Seed from whatever is stored, including nothing — a customer who signed
+    // up before this field existed sees an empty box they can fill in.
+    setEmail(userFromDB?.email || '');
   }, [userFromDB]);
 
   const handleSaveDetails = (e) => {
     e.preventDefault();
+
+    const trimmed = email.trim();
+    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError('Enter a valid email address');
+      return;
+    }
+    setEmailError(null);
+
     setIsSaving(true);
+    // Always send `email`, unlike signup: here an empty string is meaningful.
+    // It is how someone removes an address they previously saved, which the
+    // server turns into an $unset rather than storing a blank value.
     axiosSecure
-      .patch('/users/me', { name })
+      .patch('/users/me', { name, email: trimmed })
       .then((res) => {
         if (res.data.success) {
           toast.success('Account details saved');
@@ -32,7 +48,11 @@ const AccountDetails = () => {
         }
       })
       .catch((error) => {
-        toast.error(error.response?.data?.error || 'Failed to save changes');
+        const message = error.response?.data?.error || 'Failed to save changes';
+        // A collision is about the email specifically — show it against the
+        // field rather than only as a toast that disappears.
+        if (error.response?.status === 409) setEmailError(message);
+        toast.error(message);
       })
       .finally(() => setIsSaving(false));
   };
@@ -82,15 +102,54 @@ const AccountDetails = () => {
             />
           </div>
           <div className="space-y-1">
-            <label className="font-label-caps text-label-caps text-outline uppercase block">Phone Number</label>
+            <label className="font-label-caps text-label-caps text-outline uppercase block" htmlFor="account-phone">
+              Phone Number
+            </label>
             <input
+              id="account-phone"
               className="border-0 border-b border-outline-variant bg-transparent w-full py-3 transition-colors outline-none focus:ring-0 focus:border-primary font-body-base text-on-surface"
               placeholder="Your contact number"
               type="tel"
               defaultValue={userFromDB?.phone || ''}
               disabled
             />
+            <p className="text-[12px] text-on-surface-variant/70 pt-1">
+              This is how you sign in, so it can't be changed here.
+            </p>
           </div>
+        </div>
+
+        {/* Email — optional contact detail, not a sign-in method */}
+        <div className="space-y-1">
+          <label className="font-label-caps text-label-caps text-outline uppercase block" htmlFor="account-email">
+            Email <span className="normal-case text-on-surface-variant/60">(optional)</span>
+          </label>
+          <input
+            id="account-email"
+            className={`border-0 border-b bg-transparent w-full py-3 transition-colors outline-none focus:ring-0 font-body-base text-on-surface ${
+              emailError ? 'border-error focus:border-error' : 'border-outline-variant focus:border-primary'
+            }`}
+            placeholder="you@example.com"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError(null);
+            }}
+            aria-invalid={Boolean(emailError)}
+            aria-describedby="account-email-help"
+          />
+          <p id="account-email-help" className="text-[12px] pt-1">
+            {emailError ? (
+              <span className="text-error font-semibold">{emailError}</span>
+            ) : (
+              <span className="text-on-surface-variant/70">
+                For order updates. You'll still sign in with your phone number.
+                Leave blank to remove it.
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Form Group: Communication */}
@@ -108,7 +167,7 @@ const AccountDetails = () => {
         {/* Action Footer */}
         <div className="pt-2 flex flex-col md:flex-row items-center gap-6">
           <button
-            className="w-full md:w-auto bg-primary text-white font-button-text text-button-text px-12 py-4 rounded-none hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-sm disabled:opacity-60"
+            className="w-full md:w-auto bg-primary text-white font-button-text text-button-text px-12 py-4 rounded-none hover:scale-[1.02] active:scale-95 transition-ui duration-300 shadow-sm disabled:opacity-60"
             type="submit"
             disabled={isSaving || isUserLoading}
           >
@@ -130,7 +189,7 @@ const AccountDetails = () => {
             <p className="text-body-base text-on-surface-variant text-sm">Manage your account access and credentials.</p>
           </div>
           <button
-            className="text-primary font-bold text-sm hover:underline transition-all"
+            className="text-primary font-bold text-sm hover:underline transition-ui"
             onClick={() => setShowPasswordFields(!showPasswordFields)}
             type="button"
           >
@@ -180,7 +239,7 @@ const AccountDetails = () => {
             </div>
             <button
               type="submit"
-              className="bg-primary text-white font-button-text text-button-text px-10 py-3 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-60"
+              className="bg-primary text-white font-button-text text-button-text px-10 py-3 hover:scale-[1.02] active:scale-95 transition-ui duration-300 disabled:opacity-60"
               disabled={isChangingPassword}
             >
               {isChangingPassword ? 'UPDATING…' : 'UPDATE PASSWORD'}

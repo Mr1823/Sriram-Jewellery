@@ -7,10 +7,10 @@
 .right-drawer-items-con::-webkit-scrollbar-thumb {
   background: #000;
   border-radius: 1rem;
-  visibility: hidden;
-  transition: all 0.9s;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
 }
 
 .right-drawer-items-con:hover::-webkit-scrollbar-thumb {
-  visibility: visible;
+  opacity: 1;
 }

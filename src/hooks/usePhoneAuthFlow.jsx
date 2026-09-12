@@ -81,15 +81,28 @@ const usePhoneAuthFlow = () => {
     setAuthError(null);
     try {
       const token = getAccessToken();
-      await axios.patch(
-        `${getApiBaseUrl()}/users/me`,
-        { name: data.name },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+
+      // Only send `email` when one was actually typed. Sending "" would ask the
+      // server to clear a field that was never set, and omitting the key keeps
+      // this request identical to what it was for customers who skip it.
+      const payload = { name: data.name };
+      const email = data.email?.trim();
+      if (email) payload.email = email;
+
+      await axios.patch(`${getApiBaseUrl()}/users/me`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       toast.success(`Welcome, ${data.name}!`);
-      navigate(from, { replace: true });
+      // Reaching step 3 means this account was created moments ago, so this is
+      // the one point at which onboarding is warranted. `from` travels with it,
+      // so explaining how pricing works never costs the customer the page they
+      // originally came for.
+      navigate("/welcome", { replace: true, state: { from } });
     } catch (error) {
-      setAuthError(error?.response?.data?.error || "Failed to save name");
+      // A 409 here means the email is taken — the server rejects the whole
+      // request, so the name is not saved either and the customer must change
+      // or clear the address before they can finish. Its message says so.
+      setAuthError(error?.response?.data?.error || "Failed to save your details");
     } finally {
       setAuthLoading(false);
     }

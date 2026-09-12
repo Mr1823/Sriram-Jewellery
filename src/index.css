@@ -7,6 +7,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Motion Tokens ──────────────────────────────────────────────
+   One source of truth for curves and durations. The built-in CSS
+   easings are too weak for deliberate motion, so these are the
+   strong equivalents. Use them instead of hand-typing a
+   cubic-bezier — five near-identical curves is how motion stops
+   feeling like one system.
+
+   Easing, in decision order:
+     entering / exiting      → --ease-out
+     moving on screen        → --ease-in-out
+     hover / colour change   → ease (built-in is fine here)
+     constant motion         → linear
+   ─────────────────────────────────────────────────────────────── */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* UI motion stays under 300ms. Longer belongs to the hero and
+     marketing sections only, where slowness reads as luxury
+     rather than lag. */
+  --duration-press: 160ms;
+  --duration-hover: 200ms;
+  --duration-popover: 200ms;
+  --duration-modal: 250ms;
+
+  /* The CSS counterpart of the `transition-ui` Tailwind utility. Use it
+     instead of `transition: all`, which also animates layout properties
+     (width, height, letter-spacing) off the GPU. */
+  --transition-ui: color, background-color, border-color, box-shadow, opacity,
+    transform, filter;
+}
+
+/* ── Reduced Motion ────────────────────────────────────────────
+   Fewer and gentler, not zero. Opacity and colour transitions
+   survive because they aid comprehension; movement does not.
+   Scoped to motion properties so focus rings and colour feedback
+   keep working. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep the fades that prevent jarring state changes. */
+  .motion-safe-fade {
+    transition-property: opacity !important;
+    transition-duration: 200ms !important;
+  }
+}
+
 /* ── Base Layer ── */
 @layer base {
   html, body {
@@ -58,19 +113,24 @@
 .input-focus-line {
   position: relative;
 }
+/* Scales from the centre outward rather than animating width and
+   left. Those are layout properties — every frame re-ran layout,
+   paint and composite on the focused field. transform runs on the
+   GPU and produces the identical effect. */
 .input-focus-line::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 50%;
-  width: 0;
+  left: 0;
+  width: 100%;
   height: 1px;
   background: #704c31;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--duration-popover) var(--ease-out);
 }
 .input-focus-line:focus-within::after {
-  width: 100%;
-  left: 0;
+  transform: scaleX(1);
 }
 
 /* ── Heritage Gold Divider Flourish ── */
@@ -82,13 +142,18 @@
 }
 
 /* ── Ken Burns hover on images ── */
+/* Deliberately slower than the UI budget: this is a large editorial
+   image, where a drawn-out drift reads as luxury. Still well short
+   of the original 1.2s, which outlived the cursor on a quick pass. */
 .ken-burns-hover img,
 .ken-burns-hover > img {
-  transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 600ms var(--ease-out);
 }
-.ken-burns-hover:hover img,
-.ken-burns-hover:hover > img {
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .ken-burns-hover:hover img,
+  .ken-burns-hover:hover > img {
+    transform: scale(1.05);
+  }
 }
 
 /* Legacy compatibility */
@@ -99,7 +164,19 @@
 @layer components {
   /* ═══ Buttons ═══ */
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded font-body font-semibold text-sm tracking-wider transition-all duration-300 ease-out cursor-pointer uppercase;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded font-body font-semibold text-sm tracking-wider cursor-pointer uppercase;
+    transition:
+      background-color var(--duration-hover) ease,
+      border-color var(--duration-hover) ease,
+      color var(--duration-hover) ease,
+      transform var(--duration-press) var(--ease-out);
+  }
+
+  /* Physical press feedback. scale() takes the label and icons with
+     it, which is what makes it read as a press rather than a tint.
+     No hover gating needed — :active is a real press on touch. */
+  .btn:active {
+    transform: scale(0.97);
   }
   .btn-wide {
     @apply w-64;
@@ -120,21 +197,33 @@
   /* Primary: Solid Antique Bronze */
   .btn-primary, .btn-neutral {
     @apply bg-primary text-on-primary border-none;
-    transition: all 0.4s ease;
+    transition:
+      filter var(--duration-hover) ease,
+      background-color var(--duration-hover) ease,
+      transform var(--duration-press) var(--ease-out);
   }
-  .btn-primary:hover, .btn-neutral:hover {
-    transform: scale(1.02);
-    filter: brightness(0.92);
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover, .btn-neutral:hover {
+      filter: brightness(0.92);
+    }
   }
 
   /* Secondary/Outline: Ghost with gold border */
   .btn-outline {
     @apply bg-transparent border border-outline-gold text-heading-espresso;
-    transition: all 0.4s ease;
+    transition:
+      background-color var(--duration-hover) ease,
+      border-color var(--duration-hover) ease,
+      color var(--duration-hover) ease,
+      transform var(--duration-press) var(--ease-out);
   }
-  .btn-outline:hover {
-    @apply bg-surface-container-low;
-    letter-spacing: 0.12em;
+  /* letter-spacing on hover is gone: it is a layout property, so every
+     hover re-laid-out the button, nudged its text and reflowed whatever
+     sat beside it. The background shift carries the same affordance. */
+  @media (hover: hover) and (pointer: fine) {
+    .btn-outline:hover {
+      @apply bg-surface-container-low;
+    }
   }
 
   /* Ghost */
@@ -164,7 +253,9 @@
   /* Heritage CTA — Large action button */
   .btn-heritage {
     @apply w-full py-5 bg-primary text-white font-body text-xs font-bold uppercase tracking-[0.2em] border-none;
-    transition: all 0.5s ease;
+    transition-property: var(--transition-ui);
+    transition-duration: 0.5s;
+    transition-timing-function: ease;
   }
   .btn-heritage:hover {
     @apply bg-primary/90;
@@ -184,12 +275,12 @@
 
   /* Heritage underline input */
   .input-heritage {
-    @apply w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-all duration-300 outline-none focus:border-primary font-body;
+    @apply w-full bg-transparent border-0 border-b border-secondary py-3 px-0 focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 transition-ui duration-300 outline-none focus:border-primary font-body;
   }
 
   /* ═══ Cards ═══ */
   .card {
-    @apply bg-surface-container rounded-lg border border-outline-gold/30 overflow-hidden transition-all duration-500;
+    @apply bg-surface-container rounded-lg border border-outline-gold/30 overflow-hidden transition-ui duration-500;
   }
   .card:hover {
     @apply border-outline-gold/60;
@@ -206,7 +297,7 @@
 
   /* Heritage Product Card */
   .card-product {
-    @apply bg-surface-container-low border border-outline-gold/30 overflow-hidden transition-all duration-500;
+    @apply bg-surface-container-low border border-outline-gold/30 overflow-hidden transition-ui duration-500;
   }
   .card-product:hover {
     @apply border-outline-gold/60;

@@ -232,6 +232,18 @@ export const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required").max(100).optional(),
   phone: z.string().max(20).optional(),
   photoURL: z.string().max(500).optional(),
+
+  // Optional contact detail, deliberately not a credential. Customers
+  // authenticate with a phone and a one-time code; this address is never used
+  // to sign in, and it is not verified — an unconfirmed email is exactly as
+  // trustworthy as the name typed next to it, which is the accepted trade here.
+  //
+  // The empty string is permitted on purpose: it is how the form expresses
+  // "clear this field", which the handler turns into an $unset rather than
+  // writing a value. See the handler for why that distinction matters.
+  email: z
+    .union([z.email("Enter a valid email address"), z.literal("")])
+    .optional(),
 });
 
 export const changePasswordSchema = z.object({

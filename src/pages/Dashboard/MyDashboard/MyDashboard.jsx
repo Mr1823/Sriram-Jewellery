@@ -28,7 +28,7 @@ const MyDashboard = () => {
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-gutter">
         {/* Recent Orders */}
-        <section className="bg-surface-dim p-8 border border-sand transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
+        <section className="bg-surface-dim p-8 border border-sand transition-ui duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
           <div className="flex justify-between items-end mb-8">
             <h2 className="font-headline-sm text-headline-sm text-primary">Recent Orders</h2>
             <Link to="/dashboard/myOrders" className="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors">View All</Link>
@@ -58,7 +58,7 @@ const MyDashboard = () => {
         </section>
 
         {/* Wishlist Preview */}
-        <section className="bg-surface-container p-8 border border-sand transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
+        <section className="bg-surface-container p-8 border border-sand transition-ui duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
           <div className="flex justify-between items-end mb-8">
             <h2 className="font-headline-sm text-headline-sm text-primary">Wishlist</h2>
             <Link to="/dashboard/wishlist" className="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors">View Wishlist</Link>
@@ -81,7 +81,7 @@ const MyDashboard = () => {
         </section>
 
         {/* Saved Addresses */}
-        <section className="bg-surface-container p-8 border border-sand transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
+        <section className="bg-surface-container p-8 border border-sand transition-ui duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
           <div className="flex justify-between items-end mb-8">
             <h2 className="font-headline-sm text-headline-sm text-primary">Address Book</h2>
             <Link to="/dashboard/myAddress" className="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors">Manage</Link>
@@ -125,7 +125,7 @@ const MyDashboard = () => {
         </section>
 
         {/* Account Details */}
-        <section className="bg-surface-container p-8 border border-sand transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
+        <section className="bg-surface-container p-8 border border-sand transition-ui duration-500 hover:shadow-[0_20px_40px_-10px_rgba(139,100,71,0.08)] flex flex-col h-full">
           <div className="flex justify-between items-end mb-8">
             <h2 className="font-headline-sm text-headline-sm text-primary">Account Profile</h2>
             <Link to="/dashboard/accountDetails" className="font-label-caps text-label-caps text-secondary hover:text-primary transition-colors">Edit Profile</Link>

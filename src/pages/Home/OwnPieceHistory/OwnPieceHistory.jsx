@@ -17,8 +17,8 @@ const OwnPieceHistory = () => {
             Join our exclusive Gold Scheme and start your journey towards owning the jewellery of your dreams. Timeless value for timeless beauty, secured for generations.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
-            <button className="bg-primary text-white font-button-text text-button-text px-10 py-4 hover:bg-secondary transition-all uppercase tracking-widest">Enroll in Scheme</button>
-            <button className="border border-primary text-primary font-button-text text-button-text px-10 py-4 hover:bg-white transition-all uppercase tracking-widest">Locate Store</button>
+            <button className="bg-primary text-white font-button-text text-button-text px-10 py-4 hover:bg-secondary transition-ui uppercase tracking-widest">Enroll in Scheme</button>
+            <button className="border border-primary text-primary font-button-text text-button-text px-10 py-4 hover:bg-white transition-ui uppercase tracking-widest">Locate Store</button>
           </div>
         </div>
       </div>

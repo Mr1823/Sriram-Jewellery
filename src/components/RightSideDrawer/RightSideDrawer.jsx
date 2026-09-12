@@ -46,7 +46,7 @@ const RightSideDrawer = ({ showRightDrawer, setShowRightDrawer, cartData, remove
                       <p className="text-sm font-semibold text-primary">₹{(item.price || item.discountPrice)?.toLocaleString('en-IN')}</p>
                       <button
                         onClick={() => removeFromCart && removeFromCart(item._id || item.productId)}
-                        className="text-on-surface-variant hover:text-error text-xs font-label-caps uppercase tracking-widest flex items-center gap-1 transition-all md:opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 -mr-2 active:scale-95"
+                        className="text-on-surface-variant hover:text-error text-xs font-label-caps uppercase tracking-widest flex items-center gap-1 transition-ui md:opacity-0 group-hover:opacity-100 focus:opacity-100 p-2 -mr-2 active:scale-95"
                       >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                         Remove
@@ -77,14 +77,14 @@ const RightSideDrawer = ({ showRightDrawer, setShowRightDrawer, cartData, remove
               <Link
                 to="/checkout"
                 onClick={() => setShowRightDrawer(false)}
-                className="block w-full bg-primary-container text-on-primary-container text-center py-4 md:py-5 font-button-text text-sm font-semibold uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/10"
+                className="block w-full bg-primary-container text-on-primary-container text-center py-4 md:py-5 font-button-text text-sm font-semibold uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-ui shadow-lg shadow-primary/10"
               >
                 Checkout
               </Link>
               <Link
                 to="/shop"
                 onClick={() => setShowRightDrawer(false)}
-                className="block w-full border border-primary text-primary text-center py-4 md:py-5 font-button-text text-sm font-semibold uppercase tracking-widest hover:bg-primary-container hover:text-on-primary-container active:scale-95 transition-all"
+                className="block w-full border border-primary text-primary text-center py-4 md:py-5 font-button-text text-sm font-semibold uppercase tracking-widest hover:bg-primary-container hover:text-on-primary-container active:scale-95 transition-ui"
               >
                 Continue Shopping
               </Link>

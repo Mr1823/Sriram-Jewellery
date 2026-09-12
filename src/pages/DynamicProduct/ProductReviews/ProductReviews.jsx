@@ -226,7 +226,7 @@ const ProductReviews = () => {
                       required
                       name="reviewText"
                       placeholder="Share what you liked about the piece..."
-                      className="w-full bg-surface border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all rounded-sm font-body-base"
+                      className="w-full bg-surface border border-outline-variant/50 px-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-ui rounded-sm font-body-base"
                       minLength={10}
                     />
                   </div>

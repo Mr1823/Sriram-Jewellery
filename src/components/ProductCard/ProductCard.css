@@ -17,7 +17,9 @@
 
 .product-card:hover .product-img-overlay {
   opacity: 1;
-  transition: all 0.3s ease-out;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
   z-index: 15;
 }
 
@@ -41,7 +43,9 @@
 .product-card:hover .heart-icon-con {
   background-color: white;
   transform: scale(1.05);
-  transition: all 0.3s;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
 }
 
 .eye-icon-con,
@@ -49,14 +53,18 @@
   transform: translateX(130%);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease-out;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
 }
 .product-card:hover .eye-icon-con {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
   background-color: white;
-  transition: all 0.3s;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
 }
 
 .product-card:hover .edit-icon-con {
@@ -64,14 +72,19 @@
   opacity: 1;
   visibility: visible;
   background-color: white;
-  transition: all 0.3s 0.05s;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
+  transition-delay: 0.05s;
 }
 
 .add-to-cart-con {
   height: 0;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease-out;
+  transition-property: var(--transition-ui);
+  transition-duration: 0.3s;
+  transition-timing-function: var(--ease-out);
   z-index: 20;
 }
 .product-card:hover .add-to-cart-con {
